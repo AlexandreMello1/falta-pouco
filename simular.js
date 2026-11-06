@@ -178,9 +178,9 @@ function principal() {
     "| rodadas médias", aleatoria.mediaRodadas.toFixed(2));
   console.log("");
 
-  const dentro = atenta.taxa >= 0.60 && atenta.taxa <= 0.70 &&
-    aleatoria.taxa >= 0.25 && aleatoria.taxa <= 0.35;
-  console.log("metas: atenta 60–70% | aleatória 25–35% →", dentro ? "DENTRO" : "FORA");
+  const dentro = Math.abs(atenta.taxa - 0.6079) <= 0.003 &&
+    Math.abs(aleatoria.taxa - 0.1384) <= 0.003;
+  console.log("alvo do spec: atenta 60,79% | aleatória 13,84% (±0,3) →", dentro ? "DENTRO" : "FORA");
   console.log("");
   console.log("situações e deltas finais:");
   console.log(listarSituacoes(L));

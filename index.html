@@ -562,6 +562,197 @@
     color: var(--tinta-fraca);
   }
 
+  /* ---------- menu e painéis educativos ---------- */
+  .marca__menu{
+    margin-left: auto;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: .35rem .75rem;
+    font-family: var(--sans);
+    font-size: .86rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: var(--tinta-forte);
+    background: var(--papel-alto);
+    border: 2px solid var(--tinta-forte);
+    border-radius: 3px;
+    box-shadow: 2px 2px 0 rgba(19, 34, 47, .22);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .marca__menu:hover{ transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(19, 34, 47, .22); }
+  .marca__menu:active{ transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(19, 34, 47, .22); }
+  .marca__icone{ display: inline-flex; flex-direction: column; justify-content: center; gap: 3px; width: 15px; }
+  .marca__icone span{ display: block; height: 2px; background: currentColor; }
+
+  .menu{
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(8px, 2.6vw, 24px);
+    background: rgba(19, 34, 47, .62);
+    overflow: hidden;
+    animation: surge .2s ease both;
+  }
+  .menu__caixa{
+    display: flex;
+    flex-direction: column;
+    width: min(560px, 100%);
+    max-height: 100%;
+    background: var(--papel-alto);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, .1) 27px 28px);
+    border: 2px solid var(--tinta-forte);
+    border-radius: 3px;
+    box-shadow: 8px 9px 0 rgba(0, 0, 0, .3);
+  }
+  .menu__topo{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    padding: .65rem .9rem;
+    border-bottom: 2px solid var(--tinta);
+  }
+  .menu__titulo{ margin: 0; font-family: var(--serif); font-size: 1.1rem; line-height: 1.2; }
+  .menu__fechar{
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 .6rem;
+    font-family: var(--sans);
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--tinta-forte);
+    background: transparent;
+    border: 2px solid var(--tinta-forte);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .menu__corpo{ flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: .8rem .9rem 1rem; }
+  .menu__rodape{
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: flex-end;
+    padding: .6rem .9rem .75rem;
+    border-top: 1px dashed rgba(34, 58, 82, .4);
+  }
+  .menu__rodape .botao{ font-size: .82rem; padding: .45rem .8rem; min-height: 44px; }
+
+  .menu__lista{ display: grid; gap: .55rem; }
+  .menu__item{
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: .6rem .75rem;
+    font-family: var(--sans);
+    color: var(--tinta);
+    background: var(--papel-alto);
+    border: 2px solid var(--tinta-forte);
+    border-radius: 3px;
+    box-shadow: 2px 2px 0 rgba(19, 34, 47, .16);
+    cursor: pointer;
+  }
+  .menu__item:hover{ background: #fffdf7; }
+  .menu__item strong{ display: block; font-family: var(--serif); font-size: 1.02rem; }
+  .menu__item span{ display: block; font-size: .78rem; color: var(--tinta-fraca); }
+
+  .cartoes{ display: grid; gap: .6rem; }
+  .cartao{
+    padding: .6rem .75rem;
+    background: var(--papel-alto);
+    border: 1.5px solid var(--linha);
+    border-left: 5px solid var(--tinta);
+    border-radius: 3px;
+  }
+  .cartao--alvo{ border-left-color: #1f6fa8; outline: 3px solid #1f6fa8; outline-offset: 2px; }
+  .cartao__titulo{ margin: 0 0 .2rem; font-family: var(--serif); font-size: 1rem; line-height: 1.25; }
+  .cartao__texto{ margin: 0 0 .3rem; font-size: .84rem; line-height: 1.4; }
+  .cartao__acao{ margin: 0 0 .25rem; font-size: .8rem; line-height: 1.4; }
+  .cartao__rotulo{ font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-fraca); }
+  .cartao__fonte{ margin: 0; font-family: var(--mono); font-size: .62rem; line-height: 1.35; color: var(--tinta-fraca); }
+  .painel__intro{ margin: 0 0 .7rem; font-size: .84rem; line-height: 1.45; color: var(--tinta-fraca); }
+
+  .passo{
+    display: grid;
+    grid-template-columns: 1.8rem 1fr;
+    gap: .1rem .6rem;
+    padding: .5rem 0;
+    border-bottom: 1px dashed rgba(34, 58, 82, .25);
+  }
+  .passo:last-of-type{ border-bottom: 0; }
+  .passo__num{ grid-row: span 2; font-family: var(--mono); font-size: .8rem; font-weight: 700; color: var(--vermelho); }
+  .passo__titulo{ margin: 0; font-family: var(--serif); font-size: .98rem; line-height: 1.25; }
+  .passo__texto{ margin: 0; font-size: .82rem; line-height: 1.4; }
+  .passo__demo{ grid-column: 2; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: .3rem; font-family: var(--mono); font-size: .62rem; }
+  .demo-q{ width: 12px; height: 12px; border: 1.5px solid var(--tinta); border-radius: 2px; }
+  .demo-q--on{ background: var(--vermelho); border-color: #6d1c16; }
+  .demo-a{ width: 4px; height: 11px; border: 1.5px solid var(--tinta); border-radius: 1px; }
+  .demo-a--on{ background: var(--verde); border-color: #1f4a37; }
+  .demo-carta{ border: 1.5px solid #2b2a26; border-radius: 2px; padding: .08rem .3rem; background: var(--papel-alto); color: var(--tinta); }
+  .demo-selo{ border: 1.5px solid currentColor; border-radius: 2px; padding: 0 .25rem; font-weight: 700; letter-spacing: .08em; }
+  .demo-selo--escola{ color: var(--verde); }
+  .demo-selo--casa{ color: var(--vermelho); }
+  .demo-carimbo{ border: 2px double var(--vermelho); padding: 0 .3rem; letter-spacing: .1em; color: var(--vermelho); transform: rotate(-3deg); }
+  .demo-tecla{ border: 1px solid var(--linha); border-radius: 2px; padding: 0 .25rem; background: rgba(255, 255, 255, .5); }
+
+  .dicas{ margin: .8rem 0 0; padding: .6rem .75rem; background: rgba(43, 98, 73, .08); border-left: 4px solid var(--verde); }
+  .dicas p{ margin: 0 0 .3rem; font-size: .82rem; line-height: 1.4; }
+  .dicas p:last-child{ margin: 0; }
+  .dicas strong{ color: var(--verde); }
+
+  .fontes{ margin: .6rem 0 0; padding-left: 1.1rem; font-size: .8rem; line-height: 1.45; }
+  .fontes li{ margin-bottom: .25rem; }
+  .ressalva{ margin: .8rem 0 0; padding: .55rem .7rem; border: 1.5px solid var(--linha); border-radius: 3px; font-size: .78rem; line-height: 1.4; }
+
+  /* nota "Aprenda" durante a partida */
+  .aprender{
+    max-width: 54ch;
+    margin: .4rem auto .15rem;
+    padding: .4rem .65rem;
+    text-align: left;
+    background: rgba(43, 98, 73, .09);
+    border-left: 4px solid var(--verde);
+    border-radius: 2px;
+  }
+  .aprender__olho{ margin: 0 0 .1rem; font-family: var(--mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--verde); font-weight: 700; }
+  .aprender__texto{ margin: 0; font-size: .8rem; line-height: 1.38; }
+  .aprender__link{
+    display: inline-flex;
+    align-items: center;
+    margin-top: .15rem;
+    padding: .15rem 0;
+    min-height: 44px;
+    font-family: var(--sans);
+    font-size: .74rem;
+    font-weight: 700;
+    color: #1a5c8a;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .aprender__link-txt{ border-bottom: 1.5px solid currentColor; }
+  .aprender__link:hover{ color: #124668; }
+
+  .boletim__acoes{ margin: 0 0 1rem; padding-top: .8rem; border-top: 1px dashed rgba(34, 58, 82, .4); }
+  .boletim__acoes h3{ margin: 0 0 .35rem; font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-fraca); }
+  .boletim__acoes ol{ margin: 0; padding-left: 1.1rem; font-size: .88rem; line-height: 1.45; }
+  .boletim__acoes li{ margin-bottom: .3rem; }
+  .boletim__botoes{ display: flex; flex-wrap: wrap; gap: .6rem; }
+  .boletim__botoes .botao{ font-size: .9rem; }
+
   /* ---------- celular: respostas empilhadas ---------- */
   @media (max-width: 560px){
     .respostas{ grid-template-columns: 1fr; gap: .5rem; }
@@ -597,8 +788,44 @@
     .acao{ margin-top: .08rem; gap: .38rem; }
     .acao .botao{ font-size: .76rem; padding: .3rem .66rem; min-height: 38px; }
     .busca-legenda{ font-size: .56rem; }
-    .atalho{ font-size: .54rem; }
+    .atalho{ font-size: .54rem; margin: 0; }
+    /* em tela curta, o rodapé de privacidade sai de cena no jogo para o dia
+       caber em 360x640; o texto segue na tela inicial e em "Sobre e fontes" */
+    body.em-jogo .rodape{ display: none; }
     .rodape{ margin-top: .3rem; padding-top: .2rem; font-size: .52rem; line-height: 1.38; }
+    .marca__menu{ min-height: 44px; padding: .2rem .55rem; font-size: .74rem; }
+    .marca__icone{ width: 12px; gap: 2px; }
+    .menu{ padding: 6px; }
+    .menu__topo{ padding: .35rem .55rem; }
+    .menu__titulo{ font-size: .92rem; }
+    .menu__fechar{ min-width: 40px; min-height: 40px; font-size: .74rem; padding: 0 .45rem; }
+    .menu__corpo{ padding: .45rem .55rem .6rem; }
+    .menu__rodape{ padding: .4rem .55rem .5rem; }
+    .menu__rodape .botao{ font-size: .74rem; padding: .3rem .6rem; min-height: 40px; }
+    .menu__item{ padding: .45rem .55rem; }
+    .menu__item strong{ font-size: .92rem; }
+    .menu__item span{ font-size: .7rem; }
+    .cartao{ padding: .45rem .55rem; }
+    .cartao__titulo{ font-size: .9rem; }
+    .cartao__texto, .cartao__acao{ font-size: .76rem; }
+    .passo{ padding: .35rem 0; }
+    .passo__titulo{ font-size: .9rem; }
+    .passo__texto{ font-size: .74rem; }
+    .aprender{ margin: .1rem auto .05rem; padding: .22rem .5rem; }
+    .aprender__olho{ margin: 0 0 .05rem; font-size: .52rem; }
+    .aprender__texto{ font-size: .68rem; line-height: 1.3; }
+    .aprender__link{ font-size: .64rem; min-height: 44px; margin-top: .05rem; }
+    .boletim__acoes ol{ font-size: .8rem; }
+    .boletim__botoes .botao{ font-size: .8rem; padding: .45rem .7rem; }
+    .boletim{ padding: .7rem .85rem; }
+    .boletim__olho{ margin-bottom: .3rem; }
+    .carimbo{ font-size: 1.3rem; margin: .1rem 0 .45rem; padding: .24em .4em; }
+    .boletim__linha{ font-size: .9rem; line-height: 1.3; margin-bottom: .5rem; }
+    .boletim__resumo{ gap: .1rem .7rem; margin-bottom: .5rem; padding-top: .45rem; font-size: .78rem; }
+    .boletim__acoes{ margin-bottom: .5rem; padding-top: .45rem; }
+    .boletim__acoes h3{ margin-bottom: .18rem; }
+    .boletim__acoes li{ margin-bottom: .15rem; }
+    .boletim__botoes .botao{ font-size: .76rem; padding: .35rem .6rem; min-height: 40px; }
   }
 
   /* ---------- animações ---------- */
@@ -629,6 +856,7 @@
     .resp--escola, .resp--casa{ animation: entra-fade .16s ease both; }
     .resp--virando{ animation: none; }
     .overlay{ animation: entra-fade .16s ease both; }
+    .menu{ animation: entra-fade .16s ease both; }
     .q.pulso{ animation: none; }
     .a.pulso{ animation: none; }
     .botao, .resp{ transition: none; }
@@ -642,6 +870,10 @@
   <header class="marca">
     <h1>Falta Pouco</h1>
     <span class="marca__tag">o dia pede uma resposta</span>
+    <button class="marca__menu" id="btn-menu" type="button" aria-haspopup="dialog" aria-controls="menu">
+      <span class="marca__icone" aria-hidden="true"><span></span><span></span><span></span></span>
+      Menu
+    </button>
   </header>
 
   <main>
@@ -680,6 +912,10 @@
           <span class="rotulo">Estudante</span>
           <strong id="hud-nome">Estudante</strong>
         </div>
+        <div class="hud__bloco hud__bloco--rodada">
+          <span class="rotulo">Dia</span>
+          <strong><span id="rodada-num">1</span>/12</strong>
+        </div>
         <div class="hud__bloco hud__bloco--faltas">
           <span class="rotulo">Faltas</span>
           <div class="faltas" id="faltas" aria-hidden="true"></div>
@@ -689,10 +925,6 @@
           <span class="rotulo" id="animo-rotulo">Ânimo</span>
           <div class="animo animo--bom" id="animo" aria-hidden="true"></div>
           <span class="medidor-texto" id="animo-texto" aria-describedby="animo-rotulo">6/10</span>
-        </div>
-        <div class="hud__bloco hud__bloco--rodada">
-          <span class="rotulo">Dia</span>
-          <strong><span id="rodada-num">1</span>/12</strong>
         </div>
       </div>
 
@@ -728,17 +960,37 @@
       </div>
 
       <p class="feedback" id="feedback">Dia 1 de 12.</p>
+
+      <aside class="aprender" id="aprender" hidden aria-label="Aprenda">
+        <p class="aprender__olho">Aprenda</p>
+        <p class="aprender__texto" id="aprender-texto"></p>
+        <button class="aprender__link" id="aprender-link" type="button"><span class="aprender__link-txt">Ver o direito</span></button>
+      </aside>
+
       <p class="sr-only" id="anuncio" aria-live="polite" aria-atomic="true"></p>
 
       <div class="acao">
         <button class="botao" id="btn-busca" type="button" disabled aria-describedby="busca-legenda">Usar busca ativa (−2 faltas)</button>
         <span class="busca-legenda" id="busca-legenda"></span>
+        <button class="botao botao--principal" id="btn-proximo" type="button" hidden>Próximo dia</button>
       </div>
       <p class="atalho" id="atalho">1 e 2 escolhem · Tab percorre · Enter confirma</p>
     </section>
   </main>
 
   <footer class="rodape">Sem conta, sem servidor, sem áudio. Nada é salvo: recarregar a página começa outra partida.</footer>
+</div>
+
+<!-- ================= MENU E PAINÉIS ================= -->
+<div class="menu" id="menu" hidden role="dialog" aria-modal="true" aria-labelledby="menu-titulo">
+  <div class="menu__caixa">
+    <div class="menu__topo">
+      <h2 class="menu__titulo" id="menu-titulo" tabindex="-1">Menu</h2>
+      <button class="menu__fechar" id="menu-fechar" type="button">Fechar</button>
+    </div>
+    <div class="menu__corpo" id="menu-corpo"></div>
+    <div class="menu__rodape" id="menu-rodape"></div>
+  </div>
 </div>
 
 <!-- ================= FIM DE PARTIDA ================= -->
@@ -756,7 +1008,14 @@
       <dt>Escola / casa</dt><dd id="fim-escolhas">0 / 0</dd>
       <dt>Busca ativa</dt><dd id="fim-busca">não usada</dd>
     </dl>
-    <button class="botao botao--principal" id="btn-de-novo" type="button">Jogar de novo</button>
+    <div class="boletim__acoes" id="fim-acoes">
+      <h3>O que fazer agora</h3>
+      <ol id="fim-acoes-lista"></ol>
+    </div>
+    <div class="boletim__botoes">
+      <button class="botao botao--principal" id="btn-de-novo" type="button">Jogar de novo</button>
+      <button class="botao" id="btn-direitos-fim" type="button">Ver meus direitos</button>
+    </div>
   </div>
 </div>
 
@@ -1002,8 +1261,6 @@ function textoLeitura(resumo) {
 
 const ESPERA_VIRADA_MOVIMENTO = 340;
 const ESPERA_VIRADA_REDUZIDO = 0;
-const ESPERA_AUTO_MOVIMENTO = 1600;
-const ESPERA_AUTO_REDUZIDO = 900;
 const ESPERA_FIM_MOVIMENTO = 900;
 const ESPERA_FIM_REDUZIDO = 260;
 const LIMIAR_CONSELHO = 6;
@@ -1043,6 +1300,19 @@ const anuncio = document.getElementById("anuncio");
 const btnBusca = document.getElementById("btn-busca");
 const buscaLegenda = document.getElementById("busca-legenda");
 const atalho = document.getElementById("atalho");
+const aprender = document.getElementById("aprender");
+const aprenderTexto = document.getElementById("aprender-texto");
+const aprenderLink = document.getElementById("aprender-link");
+const btnProximo = document.getElementById("btn-proximo");
+const btnMenu = document.getElementById("btn-menu");
+const menu = document.getElementById("menu");
+const menuCaixa = menu.querySelector(".menu__caixa");
+const menuTitulo = document.getElementById("menu-titulo");
+const menuCorpo = document.getElementById("menu-corpo");
+const menuRodape = document.getElementById("menu-rodape");
+const menuFechar = document.getElementById("menu-fechar");
+const btnDireitosFim = document.getElementById("btn-direitos-fim");
+const fimAcoesLista = document.getElementById("fim-acoes-lista");
 const fim = document.getElementById("fim");
 const fimCarimbo = document.getElementById("fim-carimbo");
 const fimLinha = document.getElementById("fim-linha");
@@ -1091,8 +1361,360 @@ const estado = {
 };
 
 var baralho = null;
-var timerAvanco = 0;
 var podeAdiantar = false;
+var fimPendente = null;
+
+/* ================= CONTEÚDO EDUCATIVO ================= */
+
+const TITULOS_PAINEL = {
+  como: "Como jogar",
+  direitos: "Meus direitos",
+  saidas: "O que fazer",
+  sobre: "Sobre e fontes"
+};
+
+const MENU_ENTRADAS = [
+  { chave: "como", titulo: "Como jogar", desc: "Regras, controles e dicas em cinco passos." },
+  { chave: "direitos", titulo: "Meus direitos", desc: "Doze direitos que ajudam você a ficar na escola." },
+  { chave: "saidas", titulo: "O que fazer", desc: "Oito saídas práticas, com quem procurar." },
+  { chave: "sobre", titulo: "Sobre e fontes", desc: "Por que o jogo existe e de onde vêm os dados." }
+];
+
+/* Doze cartões. Texto curto: o que a lei garante e o que fazer se não acontecer. */
+const DIREITOS = [
+  {
+    id: "vaga",
+    titulo: "Sua vaga é sua",
+    texto: "Estar na escola não é favor: a educação é direito de todos e dever do Estado e da família. Quem já está matriculado não perde a vaga porque faltou, sem que a escola procure a família e acione a rede de proteção.",
+    acao: "Se disserem que você perdeu a vaga, peça a decisão por escrito e procure a Secretaria de Educação e o Conselho Tutelar.",
+    fonte: "CF, art. 205 e 208 · ECA, art. 53"
+  },
+  {
+    id: "escola-perto",
+    titulo: "Escola pública e perto de casa",
+    texto: "A escola pública deve ficar próxima da sua casa, e irmãos podem estudar no mesmo estabelecimento. Morar longe não pode virar motivo para ficar de fora.",
+    acao: "Sem vaga perto, procure a Secretaria de Educação e o Conselho Tutelar e leve o comprovante de endereço.",
+    fonte: "ECA, art. 53 · LDB, art. 4º"
+  },
+  {
+    id: "respeito",
+    titulo: "Respeito, sem violência nem bullying",
+    texto: "Ninguém aprende com medo. A escola tem o dever de prevenir violência e bullying e de promover uma cultura de paz. Respeito aos educadores também é direito e dever de todos.",
+    acao: "Anote data, local e nomes, conte a um adulto de confiança e peça à direção o registro por escrito. Em risco, ligue 100.",
+    fonte: "ECA, art. 53 · Lei 13.663/2018"
+  },
+  {
+    id: "avaliacao",
+    titulo: "Contestar nota e pedir recuperação",
+    texto: "Você pode contestar critérios de avaliação, com recurso às instâncias superiores, e pedir recuperação. Nota baixa não apaga o seu direito de aprender.",
+    acao: "Peça a prova e o critério, conteste por escrito à coordenação e, se precisar, à Secretaria de Educação.",
+    fonte: "ECA, art. 53"
+  },
+  {
+    id: "gremio",
+    titulo: "Grêmio e entidades estudantis",
+    texto: "Participar do grêmio e de entidades estudantis é um direito seu, não um privilégio. Esses espaços ajudam a resolver problemas da escola junto com a direção.",
+    acao: "Procure a direção para saber como o grêmio funciona. Se impedirem, peça o motivo por escrito e avise o Conselho Tutelar.",
+    fonte: "ECA, art. 53"
+  },
+  {
+    id: "apoio",
+    titulo: "Transporte, alimentação e material",
+    texto: "Transporte, alimentação e material didático são programas que o poder público deve garantir a quem está na escola pública. Não é caridade: é parte do direito à educação.",
+    acao: "Fale com a secretaria da escola; se não resolver, procure a Secretaria de Educação e o Conselho Tutelar.",
+    fonte: "CF, art. 208, VII · LDB, art. 4º"
+  },
+  {
+    id: "inclusao",
+    titulo: "Inclusão e atendimento especializado",
+    texto: "Quem tem deficiência tem direito à educação inclusiva e ao atendimento educacional especializado, sem pagar por isso. A escola deve se organizar para receber você.",
+    acao: "Peça por escrito a avaliação e o atendimento. Se negarem, procure a Secretaria, o Ministério Público ou a Defensoria Pública.",
+    fonte: "LBI (Lei 13.146/2015), art. 27 e 28"
+  },
+  {
+    id: "saude",
+    titulo: "Falta por doença tem justificativa",
+    texto: "Doença não é abandono. Entregue o atestado no prazo e peça por escrito que a falta seja justificada. A frequência mínima para aprovação é de 75% das aulas.",
+    acao: "Guarde cópia do atestado e do protocolo de entrega. Se a falta não for justificada, peça a correção à secretaria.",
+    fonte: "LDB, art. 24, VI · ECA, art. 56"
+  },
+  {
+    id: "conselho",
+    titulo: "Conselho Tutelar é proteção, não castigo",
+    texto: "Quando as faltas passam de 30% do limite permitido em lei, a escola deve avisar o Conselho Tutelar. O Conselho pode garantir matrícula, frequência e apoio à família.",
+    acao: "Você também pode procurar o Conselho Tutelar antes, para contar sua versão e pedir apoio.",
+    fonte: "LDB, art. 12, VIII (Lei 13.803/2019) · ECA, art. 56 e 129"
+  },
+  {
+    id: "eja",
+    titulo: "Voltar a estudar pela EJA",
+    texto: "Quem não estudou na idade certa pode voltar pela Educação de Jovens e Adultos, inclusive no período noturno. Voltar não é atraso: é direito.",
+    acao: "Pergunte na Secretaria de Educação onde há turma de EJA e quais documentos levar para se matricular.",
+    fonte: "LDB, art. 37 e 38"
+  },
+  {
+    id: "trabalho",
+    titulo: "Trabalho e aprendiz",
+    texto: "Trabalho com carteira assinada só a partir dos 16 anos. Dos 14 aos 16, só como aprendiz, com contrato e jornada protegida. Antes dos 18 é proibido trabalho noturno, perigoso ou insalubre.",
+    acao: "Se o trabalho está impedindo a aula ou é irregular, procure o Conselho Tutelar ou o Ministério Público do Trabalho.",
+    fonte: "CF, art. 7º, XXXIII · Lei 10.097/2000"
+  },
+  {
+    id: "dinheiro",
+    titulo: "Pé-de-Meia e Bolsa Família",
+    texto: "O Bolsa Família exige frequência de 60% (4 a 6 anos) e 75% (6 a 18 anos). O Pé-de-Meia é um incentivo financeiro para quem cursa o ensino médio, com frequência mínima de 80% ao mês e critério de renda. Valores e regras mudam: confirme na sua escola.",
+    acao: "Pergunte na secretaria como comprovar a frequência e quais documentos entregar. Não perca o prazo.",
+    fonte: "Lei 14.601/2023, art. 10 · Lei 14.818/2024 · Portaria MEC 169/2026"
+  }
+];
+
+/* Oito saídas práticas. */
+const SAIDAS = [
+  {
+    id: "confianca",
+    titulo: "Fale com alguém de confiança na escola",
+    quando: "Você está faltando e não sabe como voltar, ou tem medo de contar em casa.",
+    passos: [
+      "Escolha um professor, coordenador ou alguém do grêmio.",
+      "Conte em uma frase o que está acontecendo.",
+      "Combine um retorno: \"volto na terça e te conto como foi\".",
+      "Se essa pessoa não puder ajudar, peça o nome de quem pode."
+    ],
+    quem: "Professor, coordenação, direção, grêmio."
+  },
+  {
+    id: "pedagogico",
+    titulo: "Peça apoio pedagógico e recuperação",
+    quando: "A matéria atrasou, a nota caiu e você não sabe por onde começar.",
+    passos: [
+      "Peça a recuperação e o conteúdo que ficou para trás.",
+      "Liste as três coisas mais urgentes, não a lista inteira.",
+      "Combine um prazo realista com o professor.",
+      "Volte para contar o que conseguiu e o que travou."
+    ],
+    quem: "Professor da matéria, coordenação pedagógica."
+  },
+  {
+    id: "rotina",
+    titulo: "Organize a rotina e um grupo de estudo",
+    quando: "Você chega cansado e tudo parece acumulado.",
+    passos: [
+      "Reserve 30 minutos fixos por dia, no mesmo horário.",
+      "Estude com duas ou três pessoas: cada uma explica uma parte.",
+      "Escolha uma meta pequena por dia e marque quando cumprir.",
+      "Deixe material e uniforme prontos na noite anterior."
+    ],
+    quem: "Você, colegas, coordenação."
+  },
+  {
+    id: "dinheiro",
+    titulo: "Se o problema é dinheiro",
+    quando: "Falta passe, merenda, material ou ajuda em casa.",
+    passos: [
+      "Fale com a secretaria da escola: transporte e alimentação são dever do Estado.",
+      "Pergunte quais programas da rede você pode acessar e o que levar.",
+      "Procure o CRAS para orientação sobre Bolsa Família e outros auxílios.",
+      "Se a escola não resolver, registre por escrito e procure o Conselho Tutelar."
+    ],
+    quem: "Escola, CRAS, Conselho Tutelar, Secretaria de Educação."
+  },
+  {
+    id: "trabalho",
+    titulo: "Se o trabalho está comendo a aula",
+    quando: "Turno longo, trabalho noturno ou entrevista em horário de aula.",
+    passos: [
+      "Converse com a escola antes de faltar e peça reposição.",
+      "Verifique se a vaga é de aprendiz (a partir dos 14) e se tem contrato.",
+      "Negocie horário compatível com a aula; trabalho noturno antes dos 18 é proibido.",
+      "Se houver exploração, procure o Conselho Tutelar ou o Ministério Público do Trabalho."
+    ],
+    quem: "Escola, empresa, Conselho Tutelar, Ministério Público do Trabalho."
+  },
+  {
+    id: "cuidar",
+    titulo: "Se você cuida de alguém da família",
+    quando: "Irmão, avó ou outra pessoa depende de você durante o dia.",
+    passos: [
+      "Avise a escola antes de faltar e peça as tarefas.",
+      "Procure o CRAS: eles organizam apoio à família.",
+      "Peça ao Conselho Tutelar orientação se o cuidado estiver sobrando para você.",
+      "Não é sua obrigação resolver isso sozinho."
+    ],
+    quem: "CRAS, Conselho Tutelar, UBS, escola."
+  },
+  {
+    id: "saude",
+    titulo: "Saúde mental e cansaço",
+    quando: "Desânimo, sono demais ou de menos, ansiedade, vontade de sumir.",
+    passos: [
+      "Fale com alguém de confiança: não precisa explicar tudo de uma vez.",
+      "Procure a UBS do seu bairro; se precisar, eles encaminham ao CAPS.",
+      "Ligue 188 (CVV): gratuito, 24 horas, sigiloso.",
+      "Avise a escola se isso estiver afetando sua frequência."
+    ],
+    quem: "UBS, CAPS, CVV 188, escola."
+  },
+  {
+    id: "violencia",
+    titulo: "Violência ou bullying",
+    quando: "Agressão, ameaça, humilhação ou assédio, dentro ou fora da escola.",
+    passos: [
+      "Registre data, local e nomes do que aconteceu.",
+      "Conte a um adulto de confiança e peça registro na direção: é dever legal da escola agir.",
+      "Ligue 100: gratuito, 24 horas, anônimo.",
+      "Se a escola não agir, procure o Conselho Tutelar e o Ministério Público."
+    ],
+    quem: "Direção, Conselho Tutelar, Disque 100, Ministério Público."
+  }
+];
+
+/* Tutorial em cinco passos, com exemplos feitos em CSS. */
+const TUTORIAL = [
+  {
+    titulo: "O objetivo",
+    texto: "Você tem 12 dias para chegar ao fim do bimestre. Pode acumular no máximo 8 faltas e o ânimo precisa ficar acima de zero. Qualquer medidor no limite encerra a partida.",
+    demo: "medidores"
+  },
+  {
+    titulo: "Cada dia pede uma resposta",
+    texto: "A cena descreve uma situação real. As duas cartas mostram o preço antes de você escolher: faltas e ânimo. Uma segura a frequência e gasta o ânimo; a outra devolve ânimo e cobra a falta.",
+    demo: "cartas"
+  },
+  {
+    titulo: "Busca ativa: uma vez por partida",
+    texto: "O botão de busca ativa tira 2 faltas e não gasta o dia. Só funciona antes de escolher e depois de você ter pelo menos 2 faltas. Usar cedo demais costuma ser desperdício.",
+    demo: "busca"
+  },
+  {
+    titulo: "Coringa e finais",
+    texto: "Existe 1% de chance por dia de cair a carta coringa, que encerra como FORA DA ESCOLA. Os outros finais são EVADIDO (8 faltas), DESISTIU (ânimo zero) e PASSOU (12 dias).",
+    demo: "finais"
+  },
+  {
+    titulo: "Controles e privacidade",
+    texto: "Clique nas cartas ou use 1 e 2. Tab percorre, Enter ou Espaço confirmam. Depois da escolha, leia a nota e siga no botão Próximo dia. Nada é salvo nem enviado: sem conta, sem servidor, sem áudio.",
+    demo: "teclas"
+  }
+];
+
+const DICAS = [
+  "Olhe o medidor que está mais perto do fim: é ele que decide a partida.",
+  "A busca ativa não gasta dia. Guarde para quando as faltas apertarem.",
+  "Escolher sempre o mesmo lado perde: a escola gasta ânimo, a casa cobra falta."
+];
+
+/* Uma nota por situação, ligada a um cartão de direito. */
+const APRENDA = {
+  mercado: {
+    texto: "Trabalho não é falta de esforço: a lei permite trabalhar a partir dos 16 e ser aprendiz a partir dos 14, com horário compatível com a escola.",
+    direito: "trabalho"
+  },
+  recuperacao: {
+    texto: "Recuperação é parte do direito de aprender, não um favor. Se a escola não oferecer, peça por escrito à coordenação.",
+    direito: "avaliacao"
+  },
+  irmao: {
+    texto: "Cuidar de irmão não pode custar sua vaga: a escola tem o dever de procurar quem falta, e o Conselho Tutelar pode apoiar a família.",
+    direito: "vaga"
+  },
+  sarau: {
+    texto: "Sarau, grêmio e cultura também são escola. Participar de entidade estudantil é direito previsto no ECA e fortalece o vínculo com a escola.",
+    direito: "gremio"
+  },
+  prova: {
+    texto: "Nota baixa não apaga seu direito de aprender: você pode pedir revisão do critério e recuperação, com recurso à coordenação e à Secretaria.",
+    direito: "avaliacao"
+  },
+  reposicao: {
+    texto: "Reposição é chance de recuperar conteúdo e frequência. Se o horário não der, combine com a coordenação outra forma de repor.",
+    direito: "avaliacao"
+  },
+  luz: {
+    texto: "Conta de luz não é assunto de adolescente sozinho. A escola e o CRAS podem orientar a família sobre auxílios e programas.",
+    direito: "dinheiro"
+  },
+  feira: {
+    texto: "Trabalho com carteira só a partir dos 16; antes disso, só como aprendiz, com jornada compatível com a aula.",
+    direito: "trabalho"
+  },
+  uniforme: {
+    texto: "Material e uniforme entram no direito à educação básica gratuita. Se faltar, fale com a direção e a Secretaria antes de deixar de ir.",
+    direito: "apoio"
+  },
+  diretora: {
+    texto: "Quando as faltas passam do limite, a escola deve avisar o Conselho Tutelar. Isso é proteção, não castigo: você pode procurar o Conselho antes e contar sua versão.",
+    direito: "conselho"
+  },
+  madrugada: {
+    texto: "Turno que termina de madrugada não combina com aula: a lei proíbe trabalho noturno antes dos 18. Se isso acontece, procure o Conselho Tutelar.",
+    direito: "trabalho"
+  },
+  festa: {
+    texto: "Faltar por lazer não é crime, mas a falta conta. Entregue justificativa e peça reposição: sua vaga continua sua.",
+    direito: "vaga"
+  },
+  avo: {
+    texto: "Cuidar de alguém da família é pesado e não precisa ser resolvido sozinho. O CRAS e o Conselho Tutelar podem organizar apoio.",
+    direito: "conselho"
+  },
+  entrevista: {
+    texto: "Vaga de aprendiz tem jornada e horário protegidos. Remarcar a entrevista também é uma saída: o emprego não precisa competir com a aula.",
+    direito: "trabalho"
+  },
+  passe: {
+    texto: "Passe escolar é transporte garantido para quem estuda na rede pública. Se a renovação atrasar, peça declaração na escola e reclame na Secretaria.",
+    direito: "apoio"
+  },
+  chuva: {
+    texto: "Chuva forte é motivo real de falta: registre e justifique. A escola deve considerar a situação, e o importante é não deixar a falta virar abandono.",
+    direito: "apoio"
+  },
+  apresentacao: {
+    texto: "Trabalho em grupo também é avaliação: dá para combinar outra data e pedir que a nota considere o que você fez.",
+    direito: "avaliacao"
+  },
+  atestado: {
+    texto: "Atestado é documento: entregue no prazo e peça por escrito que a falta seja justificada. Doença não é abandono.",
+    direito: "saude"
+  }
+};
+
+/* Três ações concretas por final. Nunca prometem matrícula automática. */
+const ACOES_FIM = {
+  evadido: [
+    "Fale com a escola esta semana e peça o caminho de volta: matrícula, reposição e apoio.",
+    "Se a escola não resolver, procure o Conselho Tutelar e conte o que aconteceu.",
+    "Dá para voltar: pergunte na Secretaria de Educação sobre a EJA, inclusive à noite."
+  ],
+  fora: [
+    "Procure a escola ou o Conselho Tutelar: a Busca Ativa existe para encontrar quem ficou fora.",
+    "Leve seus documentos e peça a matrícula e o plano de retorno.",
+    "Se precisar voltar em outro formato, pergunte sobre a EJA na Secretaria de Educação."
+  ],
+  desistiu: [
+    "Conte para alguém da escola o que está pesando. Você não precisa resolver sozinho.",
+    "Peça apoio pedagógico e recuperação: o atraso tem caminho de volta.",
+    "Se o cansaço for constante, procure a UBS ou o CAPS. O CVV atende no 188, 24 horas."
+  ],
+  passou: [
+    "Guarde o que funcionou: qual escolha te manteve na escola?",
+    "Seus direitos continuam: vaga, transporte, alimentação e material.",
+    "Uma conversa pode ser a busca ativa de outra pessoa. Repasse o que você aprendeu."
+  ]
+};
+
+const FONTES = [
+  "Constituição Federal, art. 205 e 208.",
+  "LDB (Lei 9.394/1996), art. 4º, 5º, 12, 24, 37 e 38.",
+  "ECA (Lei 8.069/1990), art. 53 a 56 e 129.",
+  "Lei 13.663/2018 — prevenção à violência e ao bullying.",
+  "LBI (Lei 13.146/2015), art. 27 e 28 — educação inclusiva.",
+  "CF, art. 7º, XXXIII e Lei 10.097/2000 — trabalho e aprendiz.",
+  "Lei 14.601/2023, art. 10 — frequência no Bolsa Família.",
+  "Lei 14.818/2024 e Portaria MEC 169/2026 — Pé-de-Meia.",
+  "Busca Ativa Escolar — UNICEF e Undime.",
+  "PNAD Contínua 2024, divulgada pelo UNICEF em 2025: 993 mil crianças e adolescentes de 4 a 17 anos fora da escola; 440 mil têm 15 a 17 anos."
+];
 
 /* Seta + texto: o efeito nunca depende só da cor.
    Falta a mais é ruim; ânimo a mais é bom. */
@@ -1161,7 +1783,7 @@ function atualizarMedidores(faltasAnterior, animoAnterior) {
 function atualizarBusca() {
   var naEscolha = estado.emJogo && estado.fase === "escolha";
   var disponivel = naEscolha && !estado.usouBusca && estado.faltas >= MIN_FALTAS_BUSCA;
-  var esconder = !estado.emJogo || estado.fase === "coringa" || estado.fase === "fim";
+  var esconder = !estado.emJogo || estado.fase !== "escolha";
 
   btnBusca.disabled = !disponivel;
   btnBusca.hidden = esconder;
@@ -1174,17 +1796,277 @@ function atualizarBusca() {
 }
 
 function limparAvanco() {
-  if (timerAvanco) {
-    window.clearTimeout(timerAvanco);
-    timerAvanco = 0;
-  }
   podeAdiantar = false;
 }
 
 function avancarRodada() {
   if (!estado.emJogo || estado.fase !== "resolvido" || !podeAdiantar) return;
   limparAvanco();
+  atualizarProximo();
+  var final = fimPendente;
+  if (final) {
+    fimPendente = null;
+    btnProximo.textContent = "Próximo dia";
+    encerrar(final, null);
+    return;
+  }
   inicioDaRodada();
+}
+
+/* ---------- nota "Aprenda" ---------- */
+
+function tituloDoDireito(id) {
+  for (var i = 0; i < DIREITOS.length; i++) {
+    if (DIREITOS[i].id === id) return DIREITOS[i].titulo;
+  }
+  return "Meus direitos";
+}
+
+function mostrarAprender(situacao) {
+  var dado = situacao ? APRENDA[situacao.id] : null;
+  if (!dado) { esconderAprender(); return; }
+  aprenderTexto.textContent = dado.texto;
+  aprenderLink.dataset.direito = dado.direito;
+  aprenderLink.setAttribute("aria-label", "Ver o direito: " + tituloDoDireito(dado.direito));
+  aprender.hidden = false;
+}
+
+function esconderAprender() {
+  aprender.hidden = true;
+  aprenderTexto.textContent = "";
+  aprenderLink.removeAttribute("data-direito");
+}
+
+function atualizarProximo() {
+  btnProximo.hidden = !(estado.emJogo && estado.fase === "resolvido" && podeAdiantar);
+}
+
+/* ---------- menu e painéis ---------- */
+
+var menuAberto = false;
+var painelAtual = null;
+var focoRetorno = null;
+var menuOrigemFim = false;
+
+function criar(tag, classe, texto) {
+  var no = document.createElement(tag);
+  if (classe) no.className = classe;
+  if (texto !== undefined && texto !== null) no.textContent = texto;
+  return no;
+}
+
+function montarDemo(tipo) {
+  var caixa = criar("div", "passo__demo");
+  caixa.setAttribute("aria-hidden", "true");
+  var i;
+
+  if (tipo === "medidores") {
+    for (i = 0; i < 8; i++) caixa.appendChild(criar("span", "demo-q" + (i < 5 ? " demo-q--on" : "")));
+    caixa.appendChild(criar("span", null, "faltas 5/8"));
+    for (i = 0; i < 10; i++) caixa.appendChild(criar("span", "demo-a" + (i < 4 ? " demo-a--on" : "")));
+    caixa.appendChild(criar("span", null, "ânimo 4/10"));
+  } else if (tipo === "cartas") {
+    caixa.appendChild(criar("span", "demo-carta", "ESCOLA · 0 falta · −3 ânimo"));
+    caixa.appendChild(criar("span", "demo-carta", "CASA · +2 faltas · +1 ânimo"));
+  } else if (tipo === "busca") {
+    caixa.appendChild(criar("span", "demo-carta", "Busca ativa · −2 faltas · não gasta dia"));
+  } else if (tipo === "finais") {
+    caixa.appendChild(criar("span", "demo-carimbo", "FORA DA ESCOLA"));
+    caixa.appendChild(criar("span", "demo-carta", "8 faltas = EVADIDO"));
+    caixa.appendChild(criar("span", "demo-carta", "ânimo 0 = DESISTIU"));
+    caixa.appendChild(criar("span", "demo-carta", "12 dias = PASSOU"));
+  } else {
+    caixa.appendChild(criar("span", "demo-tecla", "1"));
+    caixa.appendChild(criar("span", "demo-tecla", "2"));
+    caixa.appendChild(criar("span", null, "escolhem"));
+    caixa.appendChild(criar("span", "demo-tecla", "Tab"));
+    caixa.appendChild(criar("span", null, "percorre"));
+    caixa.appendChild(criar("span", "demo-tecla", "Enter"));
+    caixa.appendChild(criar("span", null, "confirma"));
+  }
+  return caixa;
+}
+
+function renderComo() {
+  menuCorpo.appendChild(criar("p", "painel__intro",
+    "Doze dias, duas respostas por dia, oito faltas no máximo. O jogo mostra o preço de cada escolha antes de você decidir."));
+  TUTORIAL.forEach(function (passo, indice) {
+    var bloco = criar("div", "passo");
+    bloco.appendChild(criar("span", "passo__num", String(indice + 1).padStart(2, "0")));
+    bloco.appendChild(criar("h3", "passo__titulo", passo.titulo));
+    bloco.appendChild(criar("p", "passo__texto", passo.texto));
+    bloco.appendChild(montarDemo(passo.demo));
+    menuCorpo.appendChild(bloco);
+  });
+  var dicas = criar("div", "dicas");
+  dicas.appendChild(criar("p", null, "Dicas de quem joga:"));
+  DICAS.forEach(function (dica) {
+    var p = criar("p");
+    p.appendChild(criar("strong", null, "• "));
+    p.appendChild(document.createTextNode(dica));
+    dicas.appendChild(p);
+  });
+  menuCorpo.appendChild(dicas);
+}
+
+function renderDireitos(alvoId) {
+  menuCorpo.appendChild(criar("p", "painel__intro",
+    "Estes direitos valem para quem estuda. Se um deles não acontecer, o cartão diz o primeiro passo."));
+  var lista = criar("div", "cartoes");
+  DIREITOS.forEach(function (d) {
+    var cartao = criar("article", "cartao");
+    cartao.id = "direito-" + d.id;
+    cartao.appendChild(criar("h3", "cartao__titulo", d.titulo));
+    cartao.appendChild(criar("p", "cartao__texto", d.texto));
+    var acao = criar("p", "cartao__acao");
+    acao.appendChild(criar("span", "cartao__rotulo", "Se não acontecer · "));
+    acao.appendChild(document.createTextNode(d.acao));
+    cartao.appendChild(acao);
+    cartao.appendChild(criar("p", "cartao__fonte", d.fonte));
+    if (alvoId && alvoId === d.id) cartao.classList.add("cartao--alvo");
+    lista.appendChild(cartao);
+  });
+  menuCorpo.appendChild(lista);
+  if (alvoId) {
+    var alvo = document.getElementById("direito-" + alvoId);
+    if (alvo) {
+      /* o painel acabou de abrir: a primeira medida pode pegar o layout antes
+         da largura final. Repete no próximo quadro, antes da pintura, para o
+         cartão ficar inteiro visível mesmo quando é o último da lista. */
+      var ajustar = function () {
+        var topo = alvo.getBoundingClientRect().top - menuCorpo.getBoundingClientRect().top + menuCorpo.scrollTop;
+        menuCorpo.scrollTop = Math.max(0, topo - 6);
+      };
+      ajustar();
+      window.requestAnimationFrame(ajustar);
+    }
+  }
+}
+
+function renderSaidas() {
+  menuCorpo.appendChild(criar("p", "painel__intro",
+    "Oito caminhos para quando a escola começa a ficar difícil. Cada um diz quando serve, o que fazer e quem procurar."));
+  var lista = criar("div", "cartoes");
+  SAIDAS.forEach(function (s) {
+    var cartao = criar("article", "cartao");
+    cartao.id = "saida-" + s.id;
+    cartao.appendChild(criar("h3", "cartao__titulo", s.titulo));
+    cartao.appendChild(criar("p", "cartao__texto", "Quando serve: " + s.quando));
+    var passos = criar("ol", "cartao__acao");
+    s.passos.forEach(function (p) { passos.appendChild(criar("li", null, p)); });
+    cartao.appendChild(passos);
+    cartao.appendChild(criar("p", "cartao__fonte", "Quem procurar: " + s.quem));
+    lista.appendChild(cartao);
+  });
+  menuCorpo.appendChild(lista);
+  var fecho = criar("div", "dicas");
+  fecho.appendChild(criar("p", null, "Você não precisa resolver sozinho."));
+  menuCorpo.appendChild(fecho);
+}
+
+function renderSobre() {
+  menuCorpo.appendChild(criar("p", "painel__intro",
+    "Falta Pouco é um jogo curto sobre um problema grande: 993 mil crianças e adolescentes de 4 a 17 anos estavam fora da escola no Brasil (PNAD Contínua 2024, divulgada pelo UNICEF em 2025). Desses, 440 mil têm 15 a 17 anos."));
+  menuCorpo.appendChild(criar("p", "cartao__texto",
+    "O jogo não existe para culpar quem falta. Ele mostra que toda escolha tem preço e que existem direitos e caminhos de volta. A busca ativa, usada uma vez por partida, é a mesma ideia que escolas e redes de proteção usam para encontrar quem sumiu."));
+  menuCorpo.appendChild(criar("h3", "cartao__titulo", "Fontes"));
+  var fontes = criar("ul", "fontes");
+  FONTES.forEach(function (f) { fontes.appendChild(criar("li", null, f)); });
+  menuCorpo.appendChild(fontes);
+  menuCorpo.appendChild(criar("p", "ressalva",
+    "Conteúdo educativo, não é consulta jurídica. Para um caso concreto, procure o Conselho Tutelar ou a Defensoria Pública. Nada é salvo nem enviado: sem conta, sem servidor, sem áudio."));
+}
+
+function focaveisMenu() {
+  var nos = menuCaixa.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+  var saida = [];
+  for (var i = 0; i < nos.length; i++) {
+    if (!nos[i].disabled && !nos[i].hidden && nos[i].offsetParent !== null) saida.push(nos[i]);
+  }
+  return saida;
+}
+
+function mostrarLista() {
+  painelAtual = null;
+  menuTitulo.textContent = "Menu";
+  menuCorpo.textContent = "";
+  menuRodape.textContent = "";
+  menuCorpo.appendChild(criar("p", "painel__intro",
+    "Escolha um assunto. O menu abre também no meio da partida: o jogo espera por você."));
+  var lista = criar("div", "menu__lista");
+  MENU_ENTRADAS.forEach(function (entrada) {
+    var botao = criar("button", "menu__item");
+    botao.type = "button";
+    botao.appendChild(criar("strong", null, entrada.titulo));
+    botao.appendChild(criar("span", null, entrada.desc));
+    botao.addEventListener("click", function () { mostrarPainel(entrada.chave, null); });
+    lista.appendChild(botao);
+  });
+  menuCorpo.appendChild(lista);
+  var fechar = criar("button", "botao", "Fechar");
+  fechar.type = "button";
+  fechar.addEventListener("click", fecharMenu);
+  menuRodape.appendChild(fechar);
+  var primeiro = lista.querySelector("button");
+  if (primeiro) primeiro.focus({ preventScroll: true });
+}
+
+function mostrarPainel(chave, alvoId) {
+  painelAtual = chave;
+  menuTitulo.textContent = TITULOS_PAINEL[chave];
+  menuCorpo.textContent = "";
+  menuRodape.textContent = "";
+  menuCorpo.scrollTop = 0;
+
+  if (chave === "como") renderComo();
+  else if (chave === "direitos") renderDireitos(alvoId);
+  else if (chave === "saidas") renderSaidas();
+  else renderSobre();
+
+  var voltar = criar("button", "botao", "Voltar ao menu");
+  voltar.type = "button";
+  voltar.addEventListener("click", mostrarLista);
+  var fechar = criar("button", "botao botao--principal", "Fechar");
+  fechar.type = "button";
+  fechar.addEventListener("click", fecharMenu);
+  menuRodape.appendChild(voltar);
+  menuRodape.appendChild(fechar);
+
+  menuTitulo.focus({ preventScroll: true });
+}
+
+function abrirMenu(painel, alvoId) {
+  if (menuAberto) {
+    if (painel) mostrarPainel(painel, alvoId);
+    return;
+  }
+  menuOrigemFim = !fim.hidden;
+  focoRetorno = document.activeElement;
+  menuAberto = true;
+  menu.hidden = false;
+  document.body.classList.add("travado");
+  if (menuOrigemFim) fim.inert = true;
+  else pagina.inert = true;
+
+  if (painel) mostrarPainel(painel, alvoId);
+  else mostrarLista();
+}
+
+function fecharMenu() {
+  if (!menuAberto) return;
+  menuAberto = false;
+  painelAtual = null;
+  menu.hidden = true;
+  menuCorpo.textContent = "";
+  menuRodape.textContent = "";
+  if (menuOrigemFim) fim.inert = false;
+  else pagina.inert = false;
+  if (fim.hidden) document.body.classList.remove("travado");
+
+  var alvo = focoRetorno && document.contains(focoRetorno) ? focoRetorno : btnMenu;
+  menuOrigemFim = false;
+  focoRetorno = null;
+  alvo.focus({ preventScroll: true });
 }
 
 function bloquearRespostas() {
@@ -1227,6 +2109,10 @@ function inicioDaRodada() {
   estado.rodada += 1;
   estado.fase = "escolha";
   limparAvanco();
+  fimPendente = null;
+  btnProximo.textContent = "Próximo dia";
+  esconderAprender();
+  atualizarProximo();
   atalho.textContent = "1 e 2 escolhem · Tab percorre · Enter confirma";
   liberarRespostas();
 
@@ -1363,23 +2249,29 @@ function escolher(lado) {
 
     atualizarMedidores(faltasAntes, animoAntes);
     feedback.textContent = textoFeedback;
-    anuncio.textContent = textoFeedback;
 
     var fimDeJogo = resultadoFinal(faltasDepois, animoDepois, estado.rodada);
+
+    estado.fase = "resolvido";
+    mostrarAprender(situacao);
+    /* a nota também vai para a região viva: é o conteúdo educativo da rodada */
+    anuncio.textContent = textoFeedback + (aprender.hidden ? "" : " " + aprenderTexto.textContent);
+    podeAdiantar = true;
+    atualizarBusca();
+
     if (fimDeJogo) {
-      estado.fase = "fim";
-      atualizarBusca();
-      window.setTimeout(function () { encerrar(fimDeJogo, null); },
-        semAnim ? ESPERA_FIM_REDUZIDO : ESPERA_FIM_MOVIMENTO);
+      /* a nota da última rodada também aparece; o boletim espera o clique */
+      fimPendente = fimDeJogo;
+      btnProximo.textContent = "Ver o resultado";
+      atualizarProximo();
+      atalho.textContent = "Leia a nota e veja o boletim";
+      btnProximo.focus({ preventScroll: true });
       return;
     }
 
-    podeAdiantar = true;
-    atalho.textContent = "Próximo dia em instantes · clique, Espaço ou Enter adiantam";
-    atualizarBusca();
-    timerAvanco = window.setTimeout(avancarRodada,
-      Math.max(0, (semAnim ? ESPERA_AUTO_REDUZIDO : ESPERA_AUTO_MOVIMENTO) -
-        (semAnim ? ESPERA_VIRADA_REDUZIDO : ESPERA_VIRADA_MOVIMENTO)));
+    atualizarProximo();
+    atalho.textContent = "Enter, Espaço ou o botão seguem para o próximo dia";
+    btnProximo.focus({ preventScroll: true });
   }, semAnim ? ESPERA_VIRADA_REDUZIDO : ESPERA_VIRADA_MOVIMENTO);
 }
 
@@ -1406,11 +2298,16 @@ function usarBusca() {
 }
 
 function encerrar(resultado, motivoCoringa) {
+  /* o timer do coringa pode disparar com o menu aberto: fechar antes evita
+     boletim atrás do menu, foco roubado e fundo interativo ao fechar */
+  if (menuAberto) fecharMenu();
   estado.emJogo = false;
   estado.fase = "fim";
   bloquearRespostas();
   limparAvanco();
   atualizarBusca();
+  atualizarProximo();
+  esconderAprender();
 
   if (resultado === "evadido") {
     fimCarimbo.textContent = "EVADIDO";
@@ -1444,6 +2341,12 @@ function encerrar(resultado, motivoCoringa) {
     buscaRodada: estado.buscaRodada
   });
 
+  fimAcoesLista.textContent = "";
+  var acoes = ACOES_FIM[resultado] || ACOES_FIM.desistiu;
+  acoes.forEach(function (acao) {
+    fimAcoesLista.appendChild(criar("li", null, acao));
+  });
+
   fim.hidden = false;
   boletim.scrollTop = 0;
   document.body.classList.add("travado");
@@ -1452,6 +2355,7 @@ function encerrar(resultado, motivoCoringa) {
 }
 
 function iniciarPartida() {
+  if (menuAberto) fecharMenu();
   /* invisíveis (zero-width, marcas de direção, BOM) não contam como nome */
   var digitado = campoNome.value
     .replace(/[\u200B-\u200F\u202A-\u202E\uFEFF]/g, "")
@@ -1480,10 +2384,15 @@ function iniciarPartida() {
   document.body.classList.remove("travado");
   TELAS.inicio.hidden = true;
   TELAS.jogo.hidden = false;
+  document.body.classList.add("em-jogo");
 
   respEscola.hidden = false;
   respCasa.hidden = false;
   limparAvanco();
+  fimPendente = null;
+  btnProximo.textContent = "Próximo dia";
+  esconderAprender();
+  atualizarProximo();
   btnBusca.hidden = false;
   atualizarMedidores(0, ANIMO_INICIAL);
   inicioDaRodada();
@@ -1508,6 +2417,14 @@ respCasa.addEventListener("click", function (evento) {
 });
 btnBusca.addEventListener("click", usarBusca);
 btnDeNovo.addEventListener("click", iniciarPartida);
+btnProximo.addEventListener("click", avancarRodada);
+btnMenu.addEventListener("click", function () { abrirMenu(null, null); });
+menuFechar.addEventListener("click", fecharMenu);
+btnDireitosFim.addEventListener("click", function () { abrirMenu("direitos", null); });
+aprenderLink.addEventListener("click", function () {
+  var direito = aprenderLink.getAttribute("data-direito");
+  abrirMenu("direitos", direito || null);
+});
 
 /* Token de rodada capturado no pointerdown: um clique que atravessa o avanço
    automático vale para a rodada em que começou, não para a seguinte. */
@@ -1516,9 +2433,12 @@ var cliquePausa = false;
 var cliquePausaRodada = -1;
 
 function podeAdiantarPorClique(evento) {
+  if (menuAberto || !fim.hidden) return false;
   if (!estado.emJogo || estado.fase !== "resolvido" || !podeAdiantar) return false;
   var alvo = evento.target;
-  return !(alvo && alvo.closest && alvo.closest("#btn-busca"));
+  if (!alvo || !alvo.closest) return true;
+  /* link da nota, botões e campos têm ação própria: não valem como "seguir" */
+  return !alvo.closest("button, a, input, select, textarea, [role='button']");
 }
 
 document.addEventListener("pointerdown", function (evento) {
@@ -1545,11 +2465,42 @@ document.addEventListener("click", function (evento) {
 
 document.addEventListener("keydown", function (evento) {
   if (evento.repeat) return;
-  /* boletim aberto: fundo inert, foco preso no único botão do diálogo */
+
+  /* menu aberto: foco preso, Esc fecha, jogo não recebe tecla */
+  if (menuAberto) {
+    if (evento.key === "Escape") {
+      evento.preventDefault();
+      fecharMenu();
+      return;
+    }
+    if (evento.key === "Tab") {
+      var focosMenu = focaveisMenu();
+      if (!focosMenu.length) return;
+      var atualMenu = focosMenu.indexOf(document.activeElement);
+      if (evento.shiftKey) {
+        if (atualMenu <= 0) {
+          evento.preventDefault();
+          focosMenu[focosMenu.length - 1].focus();
+        }
+      } else if (atualMenu === -1 || atualMenu === focosMenu.length - 1) {
+        evento.preventDefault();
+        focosMenu[0].focus();
+      }
+    }
+    return;
+  }
+
+  /* boletim aberto: fundo inert, foco preso nos botões do diálogo */
   if (!fim.hidden) {
     if (evento.key === "Tab") {
+      var botoesFim = [btnDeNovo, btnDireitosFim];
+      var indiceFim = botoesFim.indexOf(document.activeElement);
       evento.preventDefault();
-      btnDeNovo.focus();
+      if (evento.shiftKey) {
+        botoesFim[indiceFim <= 0 ? botoesFim.length - 1 : indiceFim - 1].focus();
+      } else {
+        botoesFim[indiceFim === -1 || indiceFim === botoesFim.length - 1 ? 0 : indiceFim + 1].focus();
+      }
     }
     return;
   }
@@ -1563,6 +2514,8 @@ document.addEventListener("keydown", function (evento) {
 
   if (estado.fase === "resolvido" && podeAdiantar) {
     if (evento.key === "Enter" || evento.key === " " || evento.key === "Spacebar") {
+      /* botão e link da nota têm ação própria */
+      if (alvo && alvo.closest && alvo.closest("button, a, input, select, textarea")) return;
       evento.preventDefault();
       avancarRodada();
     }
