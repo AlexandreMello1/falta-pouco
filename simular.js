@@ -1,10 +1,17 @@
 "use strict";
 
-/* Simulador do Falta Pouco v2.
+/* Simulador do Falta Pouco v3.
    Lê o bloco de lógica pura direto do index.html (entre os marcadores), para
-   medir exatamente o conteúdo e as regras que o jogo publica.
+   medir exatamente as regras e o conteúdo que o jogo publica.
 
    Uso: node simular.js [--partidas 200000]
+
+   Políticas:
+     atenta          encara; adia só quando o ânimo está no chão; pede ajuda
+                     quando as faltas apertam (≥ 4) ou o ânimo chega a 1.
+     sempre_adiar    adia todo dia e nunca pede ajuda.
+     sempre_encarar  encara todo dia e nunca pede ajuda.
+     aleatoria       sorteia a resposta e pede ajuda a partir de 5 faltas.
 */
 
 const fs = require("node:fs");
@@ -25,9 +32,10 @@ function carregarLogica() {
   const bloco = html.slice(ini, fim);
   const fabrica = new Function(bloco + `
     return {
-      MAX_FALTAS, MAX_ANIMO, ANIMO_INICIAL, TOTAL_RODADAS, CHANCE_CORINGA,
-      CUSTO_BUSCA, MIN_FALTAS_BUSCA, SITUACOES,
-      aplicarFaltas, aplicarAnimo, embaralhar, criarBaralho, resultadoFinal,
+      MAX_FALTAS, MAX_ANIMO, ANIMO_INICIAL, TOTAL_DIAS, CHANCE_IMPREVISTO,
+      MAX_AJUDA, CUSTO_AJUDA, GANHO_AJUDA, SITUACOES, IMPREVISTOS,
+      aplicarFaltas, aplicarAnimo, aplicarEscolha, aplicarAjuda,
+      resultadoFinal, resultadoImprevisto, embaralhar, criarBaralho,
       rotuloFaltas, rotuloAnimo
     };
   `);
@@ -48,90 +56,141 @@ function criarRng(semente) {
   };
 }
 
-/* Uma partida. politica(estado, situacao) devolve "escola" ou "casa". */
-function jogar(L, politica, rng) {
-  let faltas = 0;
-  let animo = L.ANIMO_INICIAL;
-  let rodada = 0;
-  let escolas = 0;
-  let casas = 0;
-  let usouBusca = false;
-  let buscaRodada = 0;
-  const baralho = L.criarBaralho(L.SITUACOES, rng);
-
-  for (;;) {
-    rodada += 1;
-
-    if (rng() < L.CHANCE_CORINGA) {
-      return { resultado: "fora", faltas, animo, rodada, escolas, casas, usouBusca, buscaRodada };
-    }
-
-    const situacao = baralho.proxima();
-    if (!situacao) throw new Error("baralho vazio antes de 12 rodadas");
-
-    if (!usouBusca && faltas >= L.MIN_FALTAS_BUSCA) {
-      faltas = L.aplicarFaltas(faltas, -L.CUSTO_BUSCA);
-      usouBusca = true;
-      buscaRodada = rodada;
-    }
-
-    const lado = politica({ faltas, animo, rodada }, situacao);
-    const resposta = lado === "escola" ? situacao.escola : situacao.casa;
-    faltas = L.aplicarFaltas(faltas, resposta.faltas);
-    animo = L.aplicarAnimo(animo, resposta.animo);
-    if (lado === "escola") escolas += 1; else casas += 1;
-
-    const fim = L.resultadoFinal(faltas, animo, rodada);
-    if (fim) {
-      return { resultado: fim, faltas, animo, rodada, escolas, casas, usouBusca, buscaRodada };
-    }
-  }
+/* Espelha o jogo: no dia de imprevisto a resposta é plana, não entra na
+   corrente de adiar. */
+function aplicarOpcao(L, estado, tipo, resposta, evento) {
+  if (!evento) return L.aplicarEscolha(estado, tipo, resposta);
+  return {
+    faltas: L.aplicarFaltas(estado.faltas, resposta.faltas),
+    animo: L.aplicarAnimo(estado.animo, resposta.animo),
+    corrente: estado.corrente,
+    extra: 0
+  };
 }
 
-/* Política atenta: protege o medidor proporcionalmente mais perto do fim.
-   Empate em risco: protege o ânimo. */
-function politicaAtenta(estado, situacao) {
-  if (!LIMITES) throw new Error("chame carregarLogica() antes de medir");
-  const riscoFaltas = estado.faltas / LIMITES.faltas;
-  const riscoAnimo = (LIMITES.animo - estado.animo) / LIMITES.animo;
-  const protegeAnimo = riscoAnimo >= riscoFaltas;
-
-  if (protegeAnimo) {
-    /* maior ânimo; empate: menos falta */
-    if (situacao.casa.animo > situacao.escola.animo) return "casa";
-    if (situacao.escola.animo > situacao.casa.animo) return "escola";
-    return situacao.escola.faltas <= situacao.casa.faltas ? "escola" : "casa";
-  }
-  /* menor falta; empate: mais ânimo */
-  if (situacao.escola.faltas < situacao.casa.faltas) return "escola";
-  if (situacao.casa.faltas < situacao.escola.faltas) return "casa";
-  return situacao.casa.animo >= situacao.escola.animo ? "casa" : "escola";
+function mata(L, resultado) {
+  return resultado.faltas >= L.MAX_FALTAS || resultado.animo <= 0;
 }
+
+/* ---------- políticas ---------- */
+
+const ATENTA = {
+  ajuda: function (L, e) {
+    if (e.ajudas >= L.MAX_AJUDA) return false;
+    if (e.faltas >= 4) return true;
+    if (e.animo <= 1) return true;
+    return false;
+  },
+  escolha: function (L, e, opcoes, evento) {
+    if (evento) {
+      /* imprevisto: pega a resposta mais barata, sem deixar o limite fechar */
+      var a = aplicarOpcao(L, e, "encarar", opcoes.encarar, true);
+      var b = aplicarOpcao(L, e, "adiar", opcoes.adiar, true);
+      var custoA = a.faltas * 2 - a.animo;
+      var custoB = b.faltas * 2 - b.animo;
+      if (mata(L, a) && !mata(L, b)) return "adiar";
+      if (mata(L, b) && !mata(L, a)) return "encarar";
+      return custoB < custoA ? "adiar" : "encarar";
+    }
+    var enc = L.aplicarEscolha(e, "encarar", opcoes.encarar);
+    var adi = L.aplicarEscolha(e, "adiar", opcoes.adiar);
+    if (mata(L, adi) && !mata(L, enc)) return "encarar";
+    if (mata(L, enc) && !mata(L, adi)) return "adiar";
+    if (e.faltas >= 5) return "encarar";
+    if (e.animo <= 2) return "adiar";
+    return "encarar";
+  }
+};
+
+const SEMPRE_ADIAR = {
+  ajuda: function () { return false; },
+  escolha: function () { return "adiar"; }
+};
+
+const SEMPRE_ENCARAR = {
+  ajuda: function () { return false; },
+  escolha: function () { return "encarar"; }
+};
 
 function politicaAleatoria(rng) {
-  return function () { return rng() < 0.5 ? "escola" : "casa"; };
+  return {
+    ajuda: function (L, e) { return e.ajudas < L.MAX_AJUDA && e.faltas >= 5; },
+    escolha: function () { return rng() < 0.5 ? "encarar" : "adiar"; }
+  };
 }
 
-function medir(L, politica, partidas, semente) {
-  const rng = criarRng(semente);
-  const contagem = { evadido: 0, desistiu: 0, fora: 0, passou: 0 };
-  let somaFaltas = 0;
-  let somaRodadas = 0;
+/* ---------- uma partida ---------- */
 
-  for (let i = 0; i < partidas; i++) {
-    const r = jogar(L, politica, rng);
+function jogar(L, politica, rng) {
+  var e = { faltas: 0, animo: L.ANIMO_INICIAL, corrente: 0, ajudas: 0 };
+  var baralho = L.criarBaralho(L.SITUACOES, rng);
+  var dia = 0;
+  var encarou = 0;
+  var adiou = 0;
+  var ajudas = 0;
+  var imprevistos = 0;
+
+  for (;;) {
+    dia += 1;
+    var evento = rng() < L.CHANCE_IMPREVISTO;
+    var opcoes;
+    if (evento) {
+      var ev = L.IMPREVISTOS[Math.floor(rng() * L.IMPREVISTOS.length)];
+      opcoes = { encarar: ev.opcoes[0], adiar: ev.opcoes[1] };
+      imprevistos += 1;
+    } else {
+      var sit = baralho.proxima();
+      if (!sit) throw new Error("baralho vazio antes de 12 dias");
+      opcoes = { encarar: sit.encarar, adiar: sit.adiar };
+    }
+
+    if (politica.ajuda(L, e)) {
+      var comAjuda = L.aplicarAjuda(e);
+      if (comAjuda) {
+        e = { faltas: comAjuda.faltas, animo: comAjuda.animo, corrente: comAjuda.corrente, ajudas: comAjuda.ajudas };
+        ajudas += 1;
+      }
+    }
+
+    var lado = politica.escolha(L, e, opcoes, evento, rng);
+    var r = aplicarOpcao(L, e, lado, opcoes[lado], evento);
+    e = { faltas: r.faltas, animo: r.animo, corrente: r.corrente, ajudas: e.ajudas };
+    if (lado === "encarar") encarou += 1; else adiou += 1;
+
+    if (evento && L.resultadoImprevisto(e.faltas, e.animo)) {
+      return { resultado: "fora", faltas: e.faltas, animo: e.animo, dia: dia, encarou: encarou, adiou: adiou, ajudas: ajudas, imprevistos: imprevistos };
+    }
+    var final = L.resultadoFinal(e.faltas, e.animo, dia);
+    if (final) {
+      return { resultado: final, faltas: e.faltas, animo: e.animo, dia: dia, encarou: encarou, adiou: adiou, ajudas: ajudas, imprevistos: imprevistos };
+    }
+  }
+}
+
+/* ---------- medição ---------- */
+
+function medir(L, politica, partidas, semente) {
+  var rng = criarRng(semente);
+  var contagem = { passou: 0, evadido: 0, desistiu: 0, fora: 0 };
+  var somaFaltas = 0;
+  var somaDias = 0;
+  var somaImprevistos = 0;
+
+  for (var i = 0; i < partidas; i++) {
+    var r = jogar(L, politica, rng);
     contagem[r.resultado] += 1;
     somaFaltas += r.faltas;
-    somaRodadas += r.rodada;
+    somaDias += r.dia;
+    somaImprevistos += r.imprevistos;
   }
 
   return {
-    partidas,
-    vitorias: contagem.passou,
+    partidas: partidas,
+    contagem: contagem,
     taxa: contagem.passou / partidas,
-    contagem,
     mediaFaltas: somaFaltas / partidas,
-    mediaRodadas: somaRodadas / partidas
+    mediaDias: somaDias / partidas,
+    imprevistosPorPartida: somaImprevistos / partidas
   };
 }
 
@@ -139,55 +198,104 @@ function pct(x) {
   return (x * 100).toFixed(2) + "%";
 }
 
-function listarSituacoes(L) {
-  const linhas = L.SITUACOES.map(function (s, i) {
-    const e = s.escola;
-    const c = s.casa;
-    return [
-      String(i + 1).padStart(2, " "),
-      s.id.padEnd(12, " "),
-      ("E " + L.rotuloFaltas(e.faltas) + " / " + L.rotuloAnimo(e.animo)).padEnd(28, " "),
-      "C " + L.rotuloFaltas(c.faltas) + " / " + L.rotuloAnimo(c.animo)
-    ].join("  ");
-  });
-  return linhas.join("\n");
+function media(valores) {
+  return valores.reduce(function (a, b) { return a + b; }, 0) / valores.length;
+}
+
+function resumoDeltas(L) {
+  var encAnimo = L.SITUACOES.map(function (s) { return s.encarar.animo; });
+  var encFaltas = L.SITUACOES.map(function (s) { return s.encarar.faltas; });
+  var adiFaltas = L.SITUACOES.map(function (s) { return s.adiar.faltas; });
+  var adiAnimo = L.SITUACOES.map(function (s) { return s.adiar.animo; });
+  return {
+    encararAnimo: media(encAnimo),
+    encararFaltas: media(encFaltas),
+    adiarFaltas: media(adiFaltas),
+    adiarAnimo: media(adiAnimo)
+  };
 }
 
 function principal() {
-  const L = carregarLogica();
-  const arg = process.argv.indexOf("--partidas");
-  const partidas = arg > 0 ? Number(process.argv[arg + 1]) : 200000;
+  var L = carregarLogica();
+  var arg = process.argv.indexOf("--partidas");
+  var partidas = arg > 0 ? Number(process.argv[arg + 1]) : 200000;
 
-  if (!Number.isFinite(partidas) || partidas <= 0) {
-    throw new Error("--partidas precisa de um inteiro positivo");
+  if (!Number.isFinite(partidas) || partidas <= 0 || Math.floor(partidas) !== partidas) {
+    console.error("--partidas precisa de um inteiro positivo");
+    process.exit(2);
   }
 
-  console.log("Falta Pouco v2 — simulação");
-  console.log("situações na poça:", L.SITUACOES.length);
+  var aleatoria = politicaAleatoria(criarRng(987654321));
+  var linhas = [
+    { nome: "atenta", politica: ATENTA, meta: "60–70%", dentro: function (t) { return t >= 0.60 && t <= 0.70; } },
+    { nome: "sempre_adiar", politica: SEMPRE_ADIAR, meta: "≤5%", dentro: function (t) { return t <= 0.05; } },
+    { nome: "sempre_encarar", politica: SEMPRE_ENCARAR, meta: "≤20%", dentro: function (t) { return t <= 0.20; } },
+    { nome: "aleatoria", politica: aleatoria, meta: "registro", dentro: function () { return true; } }
+  ];
+
+  console.log("Falta Pouco v3 — simulação");
+  console.log("situações:", L.SITUACOES.length, "· imprevistos:", L.IMPREVISTOS.length,
+    "· dias:", L.TOTAL_DIAS, "· faltas 0–" + L.MAX_FALTAS,
+    "· ânimo 0–" + L.MAX_ANIMO, "(inicial " + L.ANIMO_INICIAL + ")");
+  console.log("ajuda: " + L.MAX_AJUDA + " usos · −" + L.CUSTO_AJUDA + " faltas · +" + L.GANHO_AJUDA + " ânimo");
   console.log("partidas por política:", partidas);
   console.log("");
 
-  const atenta = medir(L, politicaAtenta, partidas, 20261106);
-  const aleatoria = medir(L, politicaAleatoria(criarRng(987654321)), partidas, 20261106);
+  var resultados = [];
+  var reprovou = false;
 
-  console.log("ATENTA    ", pct(atenta.taxa), JSON.stringify(atenta.contagem),
-    "| faltas médias", atenta.mediaFaltas.toFixed(2),
-    "| rodadas médias", atenta.mediaRodadas.toFixed(2));
-  console.log("ALEATÓRIA ", pct(aleatoria.taxa), JSON.stringify(aleatoria.contagem),
-    "| faltas médias", aleatoria.mediaFaltas.toFixed(2),
-    "| rodadas médias", aleatoria.mediaRodadas.toFixed(2));
-  console.log("");
+  linhas.forEach(function (linha) {
+    var r = medir(L, linha.politica, partidas, 20261106);
+    resultados.push({ linha: linha, r: r });
+    if (!linha.dentro(r.taxa)) reprovou = true;
+  });
 
-  const dentro = Math.abs(atenta.taxa - 0.6079) <= 0.003 &&
-    Math.abs(aleatoria.taxa - 0.1384) <= 0.003;
-  console.log("alvo do spec: atenta 60,79% | aleatória 13,84% (±0,3) →", dentro ? "DENTRO" : "FORA");
+  var largura = 16;
+  console.log(
+    "política".padEnd(largura) + "PASSOU".padStart(9) + "   meta".padEnd(10) +
+    "EVADIDO".padStart(9) + "DESISTIU".padStart(10) + "FORA".padStart(8) +
+    "faltas".padStart(9) + "dias".padStart(7) + "  situação"
+  );
+
+  resultados.forEach(function (item) {
+    var r = item.r;
+    var dentro = item.linha.dentro(r.taxa);
+    console.log(
+      item.linha.nome.padEnd(largura) +
+      pct(r.taxa).padStart(9) + "   " +
+      item.linha.meta.padEnd(10) +
+      pct(r.contagem.evadido / r.partidas).padStart(9) +
+      pct(r.contagem.desistiu / r.partidas).padStart(10) +
+      pct(r.contagem.fora / r.partidas).padStart(8) +
+      r.mediaFaltas.toFixed(2).padStart(9) +
+      r.mediaDias.toFixed(2).padStart(7) +
+      "  " + (dentro ? "DENTRO" : "FORA")
+    );
+  });
+
   console.log("");
-  console.log("situações e deltas finais:");
-  console.log(listarSituacoes(L));
+  console.log("aleatória — imprevistos por partida:", resultados[3].r.imprevistosPorPartida.toFixed(3));
+
+  var d = resumoDeltas(L);
+  console.log("");
+  console.log("deltas médios das 18 situações:");
+  console.log("  encarar · ânimo " + d.encararAnimo.toFixed(2) +
+    " · faltas " + d.encararFaltas.toFixed(2) +
+    " | adiar · faltas " + d.adiarFaltas.toFixed(2) +
+    " · ânimo " + d.adiarAnimo.toFixed(2));
+
+  var foraDaFaixaAleatoria = resultados[3].r.taxa < 0.25 || resultados[3].r.taxa > 0.40;
+  console.log("  aleatória fora de 25–40%? " + (foraDaFaixaAleatoria ? "sim (justificar no README)" : "não"));
+
+  console.log("");
+  console.log("meta do spec: atenta 60–70% · sempre_adiar ≤5% · sempre_encarar ≤20% →",
+    reprovou ? "FORA" : "DENTRO");
+
+  process.exit(reprovou ? 1 : 0);
 }
 
 if (require.main === module) {
   principal();
 }
 
-module.exports = { carregarLogica, jogar, politicaAtenta, politicaAleatoria, medir, criarRng };
+module.exports = { carregarLogica, jogar, medir, criarRng, ATENTA, SEMPRE_ADIAR, SEMPRE_ENCARAR, politicaAleatoria };

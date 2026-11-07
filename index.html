@@ -2,909 +2,1851 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Falta Pouco — o dia pede uma resposta</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f7f0dd'/%3E%3Crect x='5' y='5' width='22' height='22' fill='none' stroke='%239e2f26' stroke-width='3'/%3E%3C/svg%3E">
-<meta name="description" content="Doze dias, duas respostas, oito faltas. Um jogo de escolhas sobre evasão escolar. Nada é salvo, nada sai do seu computador.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f7f0dd">
+<title>Falta Pouco — encarar ou adiar</title>
+<meta name="description" content="Doze dias, duas respostas — e as duas terminam na escola. Um jogo curto sobre permanência escolar: sem conta, sem servidor, sem áudio.">
 <style>
-  :root{
-    --papel: #f7f0dd;
-    --papel-alto: #fdf9ee;
-    --tinta: #223a52;
-    --tinta-forte: #13222f;
-    --tinta-fraca: #5c6b78;
-    --linha: #b9cbdc;
-    --vermelho: #9e2f26;
-    --vermelho-forte: #c2402f;
-    --verde: #2b6249;
-    --ambar: #8a5b12;
-    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
-    --sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
-    --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+/* ==========================================================================
+   FALTA POUCO — v3 · "encarar ou adiar"
+   Folha de estilo única. Sem biblioteca, sem fonte externa, sem rede.
+   Ordem: tokens > base > estrutura > tipografia > botões > telas > cartas >
+          menu > boletim > movimento > responsivo.
+   Contrato de DOM: CONTRATO-DOM.md. Nada aqui renomeia id, classe ou data-opcao.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tokens
+   Todos os pares de cor/fundo estão medidos em layout-v3.md.
+   -------------------------------------------------------------------------- */
+:root {
+  /* papel e tinta */
+  --papel: #f7f0dd;
+  --papel-alto: #fdf9ee;
+  --papel-fundo: #e6dcc6;
+  --tinta: #223a52;          /* 10,29:1 no papel */
+  --tinta-forte: #13222f;    /* 14,23:1 no papel */
+  --tinta-fraca: #4e5c68;    /*  6,04:1 no papel */
+  --linha: #b9cbdc;
+  --linha-forte: #8ba3b8;
+
+  /* acentos */
+  --vermelho: #9e2f26;       /*  6,39:1 no papel */
+  --verde: #2b6249;          /*  6,27:1 no papel */
+  --ambar: #8a5b12;          /*  5,15:1 no papel */
+  --roxo: #4a3568;           /*  9,98:1 no papel-alto */
+  --azul: #1a5c8a;           /*  6,28:1 no papel */
+  --foco: #1f6fa8;           /*  4,74:1 no papel */
+
+  /* fundos derivados */
+  --verde-bg: #eaebdf;
+  --verde-bg-forte: #f4faf1;
+  --descartada-bg: #f0e9d9;
+  --coringa-bg: #17150f;
+
+  /* tipografia */
+  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  --sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+
+  /* medidas */
+  --raio: 3px;
+  --pad-x: clamp(12px, 3vw, 34px);
+  --pad-y: clamp(10px, 2.2vh, 26px);
+  --gap: clamp(6px, 1vh, 12px);
+  --toque: 44px;
+  --largura: 1180px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(1rem, 0.45vw + 0.91rem, 1.2rem); /* 16px a 320, 19,2px a 1280+ */
+  line-height: 1.5;
+  color: var(--tinta);
+  background-color: var(--papel-fundo);
+  overflow-x: hidden; /* rede de segurança; o layout não deve precisar disso */
+}
+
+/* o papel do caderno fica na página, não no body: no desktop ele vira uma
+   folha sobre a mesa, no celular ocupa a tela toda */
+.pagina {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--largura);
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--pad-y) var(--pad-x);
+  padding-bottom: max(var(--pad-y), env(safe-area-inset-bottom));
+  background-color: var(--papel);
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.13) 27px 28px),
+    radial-gradient(rgba(120, 96, 60, 0.055) 1px, transparent 1px);
+  background-size: auto, 4px 4px;
+  background-attachment: local, local;
+}
+
+/* margem vermelha do caderno */
+.pagina::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(4px, calc(var(--pad-x) - 7px));
+  width: 1.5px;
+  background: rgba(178, 71, 58, 0.35);
+  pointer-events: none;
+}
+
+body.travado { overflow: hidden; }
+
+/* durante a partida a página tem altura definida: assim o palco encolhe de
+   verdade e a cena é quem absorve a falta de espaço (em vez de a página crescer) */
+body.em-jogo .pagina {
+  height: 100vh;
+  height: 100dvh;
+}
+
+::selection {
+  background: rgba(31, 111, 168, 0.22);
+  color: var(--tinta-forte);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3. Estrutura: cabeçalho, palco, telas, rodapé
+   -------------------------------------------------------------------------- */
+.marca {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.85rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 2px solid var(--tinta);
+  margin-bottom: clamp(0.7rem, 1.8vh, 1.5rem);
+}
+
+.marca__titulo {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 4.4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.marca__tag {
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.marca__menu {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: var(--toque);
+  min-width: var(--toque);
+  padding: 0.4rem 0.8rem;
+  font-family: var(--sans);
+  font-size: clamp(0.82rem, 1vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--tinta-forte);
+  background: var(--papel-alto);
+  border: 2px solid var(--tinta-forte);
+  border-radius: var(--raio);
+  box-shadow: 2px 2px 0 rgba(19, 34, 47, 0.22);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+.marca__menu:hover { background: #fffdf7; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(19, 34, 47, 0.22); }
+.marca__menu:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(19, 34, 47, 0.22); }
+
+.marca__icone {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 15px;
+  flex: 0 0 auto;
+}
+.marca__icone span { display: block; height: 2px; background: currentColor; }
+
+.palco {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.tela {
+  min-height: 0;
+  width: 100%;
+}
+
+.tela--inicio {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tela--jogo {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: var(--gap);
+}
+
+.rodape {
+  flex: 0 0 auto;
+  margin: clamp(0.8rem, 2vh, 1.6rem) 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(34, 58, 82, 0.3);
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.85vw, 0.76rem);
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+  color: var(--tinta-fraca);
+}
+
+/* --------------------------------------------------------------------------
+   4. Tipografia solta
+   -------------------------------------------------------------------------- */
+.chamada {
+  margin: 0 0 0.6rem;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 5.2vw, 2.6rem);
+  line-height: 1.15;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.explicacao {
+  margin: 0 0 clamp(1rem, 2.4vh, 1.6rem);
+  max-width: 52ch;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--tinta);
+  text-wrap: pretty;
+}
+
+.dica {
+  margin: 0 0 1.2rem;
+  font-size: clamp(0.8rem, 0.9vw, 0.9rem);
+  line-height: 1.45;
+  color: var(--tinta-fraca);
+}
+
+/* --------------------------------------------------------------------------
+   5. Botões
+   -------------------------------------------------------------------------- */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  min-height: 48px;
+  min-width: var(--toque);
+  padding: 0.68rem 1.15rem;
+  font-family: var(--sans);
+  font-size: clamp(0.95rem, 1vw, 1.05rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-align: center;
+  color: var(--tinta-forte);
+  background: var(--papel-alto);
+  border: 2px solid var(--tinta-forte);
+  border-radius: var(--raio);
+  box-shadow: 3px 3px 0 rgba(19, 34, 47, 0.22);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease, opacity 0.12s ease;
+}
+
+.botao:hover:not(:disabled) {
+  background: #fffdf7;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 rgba(19, 34, 47, 0.24);
+}
+
+.botao:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 rgba(19, 34, 47, 0.22);
+}
+
+.botao:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: 3px 3px 0 rgba(19, 34, 47, 0.1);
+}
+
+.botao--principal {
+  color: var(--papel-alto);
+  background: var(--tinta-forte);
+  border-color: var(--tinta-forte);
+}
+.botao--principal:hover:not(:disabled) { background: #1d3243; }
+.botao--principal:disabled { opacity: 0.5; }
+
+/* pedir ajuda: contorno tracejado para não ser confundido com o avançar */
+.botao--ajuda {
+  border-style: dashed;
+  color: var(--tinta);
+  background: rgba(253, 249, 238, 0.9);
+}
+
+.botao--ajuda .botao__contador,
+.botao--ajuda .contador {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.05em 0.3em;
+  font-family: var(--mono);
+  font-size: 0.82em;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--tinta-forte);
+  background: rgba(34, 58, 82, 0.1);
+  border: 1px solid var(--linha-forte);
+  border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* esgotado: continua legível (não é opacidade a 55%) e diz o estado por
+   tracejado + texto do próprio botão, nunca só pela cor */
+.botao--ajuda:disabled,
+.botao--ajuda[aria-disabled="true"] {
+  opacity: 1;
+  color: var(--tinta-fraca);
+  background: rgba(34, 58, 82, 0.045);
+  border-color: var(--linha-forte);
+  border-style: dashed;
+  box-shadow: none;
+}
+.botao--ajuda:disabled .botao__contador,
+.botao--ajuda[aria-disabled="true"] .botao__contador {
+  color: var(--tinta-fraca);
+  background: transparent;
+}
+
+/* foco visível forte, igual em tudo que recebe teclado */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+:where(.carta, .menu__item):focus-visible {
+  outline-offset: 2px;
+  box-shadow: 0 0 0 7px rgba(31, 111, 168, 0.22), 4px 6px 0 rgba(43, 42, 38, 0.18);
+}
+
+/* --------------------------------------------------------------------------
+   6. Tela inicial
+   -------------------------------------------------------------------------- */
+.inicio__cartao {
+  width: 100%;
+  max-width: 660px;
+  margin: auto;
+  padding: clamp(1.1rem, 3.2vw, 2.2rem);
+  background: var(--papel-alto);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.07) 27px 28px);
+  border: 2px solid var(--tinta-forte);
+  border-left: 8px solid var(--tinta);
+  border-radius: var(--raio);
+  box-shadow: 5px 6px 0 rgba(43, 42, 38, 0.16);
+}
+
+.inicio-form { max-width: 440px; }
+
+.campo-rotulo {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--mono);
+  font-size: clamp(0.7rem, 0.85vw, 0.78rem);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.campo {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.3rem 0 0.4rem;
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+  color: var(--tinta-forte);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--tinta);
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.campo::placeholder { color: var(--tinta-fraca); font-style: italic; opacity: 0.85; }
+.campo:focus { outline-offset: 6px; }
+
+/* --------------------------------------------------------------------------
+   7. HUD e medidores
+   -------------------------------------------------------------------------- */
+.hud {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.9rem;
+  padding: 0.45rem 0.7rem;
+  background: rgba(253, 249, 238, 0.78);
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio);
+}
+
+.hud__bloco {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.hud__bloco--nome { flex: 1 1 7rem; }
+
+.hud__bloco--nome strong {
+  font-family: var(--serif);
+  font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.hud__bloco--rodada strong {
+  font-family: var(--mono);
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rotulo {
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.85vw, 0.72rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+  white-space: nowrap;
+}
+
+.faltas {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+
+.q {
+  display: block;
+  width: clamp(14px, 1.5vw, 19px);
+  height: clamp(14px, 1.5vw, 19px);
+  border: 1.5px solid var(--tinta);
+  border-radius: 2px;
+  background-image: linear-gradient(135deg, transparent 46%, rgba(34, 58, 82, 0.22) 46% 54%, transparent 54%);
+}
+
+.q--on {
+  background-color: var(--vermelho);
+  background-image: none;
+  border-color: #6d1c16;
+}
+
+.animo {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.a {
+  display: block;
+  width: clamp(5px, 0.6vw, 7px);
+  height: clamp(14px, 1.5vw, 19px);
+  border: 1.5px solid var(--tinta);
+  border-radius: 1px;
+  background-color: transparent;
+}
+
+.a--on { background-color: var(--tinta); }
+.animo--bom .a--on { background-color: var(--verde); border-color: #1f4a37; }
+.animo--atencao .a--on { background-color: var(--ambar); border-color: #6b450d; }
+.animo--critico .a--on { background-color: var(--vermelho); border-color: #6d1c16; }
+
+.medidor-texto {
+  font-family: var(--mono);
+  font-size: clamp(0.7rem, 0.9vw, 0.8rem);
+  color: var(--tinta-fraca);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* aviso de faltas no limite: borda + número em vermelho + texto do #alerta */
+.hud.alerta { border-color: var(--vermelho); border-width: 2px; }
+.hud.alerta .medidor-texto--faltas,
+.hud.alerta .hud__bloco--faltas .medidor-texto {
+  color: var(--vermelho);
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   8. Avisos de estado
+   -------------------------------------------------------------------------- */
+.aviso {
+  flex: 0 0 auto;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.9vw, 0.82rem);
+  line-height: 1.35;
+  color: var(--vermelho);
+  overflow-wrap: anywhere;
+}
+
+.aviso::before { content: "\25B8  "; }
+.aviso--animo { color: var(--ambar); }
+.aviso--faltas { color: var(--tinta); }
+
+/* --------------------------------------------------------------------------
+   9. Mesa e cena
+   -------------------------------------------------------------------------- */
+.mesa {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.1vh, 12px);
+  min-height: 0;
+  padding-top: clamp(1px, 0.5vh, 6px);
+}
+
+/* a cena é o ÚNICO elemento com rolagem própria */
+.cena {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(0.65rem, 1.8vw, 1.2rem) clamp(0.8rem, 2.2vw, 1.5rem);
+  background: var(--papel-alto);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.08) 27px 28px);
+  border: 2px solid #2b2a26;
+  border-left: 6px solid var(--tinta);
+  border-radius: var(--raio);
+  box-shadow: 3px 4px 0 rgba(43, 42, 38, 0.14);
+  scrollbar-width: thin;
+  scrollbar-color: var(--linha-forte) transparent;
+}
+
+.cena::-webkit-scrollbar { width: 10px; }
+.cena::-webkit-scrollbar-thumb { background: var(--linha-forte); border-radius: 5px; }
+.cena::-webkit-scrollbar-track { background: transparent; }
+
+.cena__olho {
+  margin: 0 0 0.25rem;
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.85vw, 0.72rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.cena__texto {
+  margin: 0;
+  max-width: 62ch;
+  font-family: var(--serif);
+  font-size: clamp(1.06rem, 1.1vw + 0.8rem, 1.5rem);
+  line-height: 1.45;
+  color: var(--tinta-forte);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* imprevisto: a cena vira quadro-negro */
+.cena--coringa {
+  background: var(--coringa-bg);
+  background-image: none;
+  border-color: #000;
+  border-left-color: #000;
+  color: #f4ecda;
+  box-shadow: 5px 6px 0 rgba(0, 0, 0, 0.38);
+}
+.cena--coringa .cena__olho { color: #cdbfa4; }
+.cena--coringa .cena__texto { color: #f4ecda; }
+
+/* selo dentro da cena (evasão) */
+.cena > .selo { margin-bottom: 0.45rem; }
+.selo--evasao {
+  color: var(--vermelho);
+  border-width: 3px;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  transform: rotate(-4deg);
+}
+.cena--coringa .selo--evasao { color: #ff7364; }
+
+/* --------------------------------------------------------------------------
+   10. Cartas de resposta
+   -------------------------------------------------------------------------- */
+.respostas {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(6px, 1vh, 10px);
+  min-height: 0;
+}
+
+/* `.resp` é o nome v2 da mesma carta; o apelido fica para o HTML atual não
+   ficar sem estilo durante a migração. A v3 usa só `.carta`. */
+:is(.carta, .resp) {
+  --rot: 0deg;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 96px; /* alvo grande: no celular a carta nunca fica menor que isto */
+  padding: clamp(0.6rem, 1.6vw, 0.95rem) clamp(0.7rem, 1.8vw, 1.05rem);
+  text-align: left;
+  font: inherit;
+  color: var(--tinta);
+  background: var(--papel-alto);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.09) 27px 28px);
+  border: 2px solid #2b2a26;
+  border-radius: var(--raio);
+  box-shadow: 3px 4px 0 rgba(43, 42, 38, 0.16);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease,
+    border-color 0.14s ease, color 0.14s ease;
+}
+
+/* identidade de cada lado sem depender só da cor: o selo traz a palavra */
+.carta--encarar,
+.resp--escola { border-left: 6px solid var(--verde); }
+.carta--adiar,
+.resp--casa { border-left: 6px solid var(--ambar); }
+
+.carta:hover:not(:disabled),
+.resp:hover:not(:disabled) {
+  background-color: #fffdf7;
+  transform: translateY(-2px);
+  box-shadow: 4px 6px 0 rgba(43, 42, 38, 0.2);
+}
+.carta:active:not(:disabled),
+.resp:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 1px 2px 0 rgba(43, 42, 38, 0.16);
+}
+
+/* depois da escolha as cartas ficam :disabled, mas continuam legíveis */
+.carta:disabled,
+.resp:disabled { cursor: default; }
+
+.carta__topo,
+.resp__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.selo {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(0.64rem, 0.8vw, 0.72rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta);
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  transform: rotate(-2.5deg);
+}
+
+.selo--encarar { color: var(--verde); }
+.selo--adiar { color: var(--ambar); }
+/* compatibilidade com o vocabulário antigo, se algum texto ainda usar */
+.selo--escola { color: var(--verde); }
+.selo--casa { color: var(--ambar); }
+
+.tecla {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.32rem;
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.8vw, 0.7rem);
+  line-height: 1;
+  color: var(--tinta-fraca);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--linha-forte);
+  border-radius: 2px;
+}
+
+.carta__titulo,
+.resp__titulo {
+  font-family: var(--serif);
+  font-size: clamp(1.04rem, 1.4vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.carta__efeitos,
+.resp__efeitos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.7rem;
+  margin-top: 0.45rem;
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.9vw, 0.82rem);
+  line-height: 1.35;
+}
+
+.efeito { white-space: nowrap; }
+.efeito--bom { color: var(--verde); }
+.efeito--ruim { color: var(--vermelho); }
+.efeito--neutro { color: var(--tinta-fraca); }
+
+/* linha com o resultado da escolha, acrescentada depois da virada */
+.carta__resultado,
+.resp__resultado {
+  display: block;
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed rgba(34, 58, 82, 0.4);
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.85vw, 0.8rem);
+  line-height: 1.45;
+  color: var(--tinta-forte);
+  overflow-wrap: anywhere;
+}
+
+/* --- estados da carta --- */
+.carta--escolhida {
+  background-color: var(--verde-bg-forte);
+  border-color: var(--verde);
+  box-shadow: 4px 5px 0 rgba(43, 98, 73, 0.3), inset 0 0 0 1px var(--verde);
+}
+
+.carta--descartada {
+  color: var(--tinta-fraca);
+  background-color: var(--descartada-bg);
+  border-color: #7d7a70;
+  box-shadow: 1px 2px 0 rgba(43, 42, 38, 0.1);
+  pointer-events: none;
+}
+.carta--descartada .carta__titulo { color: var(--tinta-fraca); }
+.carta--descartada .carta__efeitos { visibility: hidden; }
+.carta--descartada .selo { color: #6b6a63; border-color: #6b6a63; }
+.carta--descartada .tecla { opacity: 0.6; }
+.carta--descartada::after,
+.resp--descartada::after {
+  content: "deixada de lado";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.45rem;
+  padding: 0.16rem 0;
+  font-family: var(--mono);
+  font-size: clamp(0.6rem, 0.75vw, 0.66rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--vermelho);
+  background: rgba(253, 249, 238, 0.94);
+  border-top: 2px solid var(--vermelho);
+  border-bottom: 2px solid var(--vermelho);
+  transform: rotate(-2deg);
+}
+
+/* carta bloqueada antes da escolha (ex.: regra de fase) */
+.carta--indisponivel,
+.carta[aria-disabled="true"]:not(.carta--escolhida) {
+  background-color: #f2ecdd;
+  border-color: #8d8a80;
+  color: var(--tinta-fraca);
+  box-shadow: 1px 2px 0 rgba(43, 42, 38, 0.1);
+  cursor: not-allowed;
+}
+.carta--indisponivel .carta__titulo { color: var(--tinta-fraca); }
+
+/* compatibilidade com as classes antigas de resultado */
+.resp--escolhida { background-color: var(--verde-bg-forte); border-color: var(--verde); }
+.resp--descartada { color: var(--tinta-fraca); background-color: var(--descartada-bg); border-color: #7d7a70; }
+.resp--descartada .resp__efeitos { visibility: hidden; }
+
+/* --------------------------------------------------------------------------
+   11. Rodapé do jogo: barra de ações, feedback, nota, atalho
+   -------------------------------------------------------------------------- */
+.barra,
+.acao {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.45rem, 1vw, 0.85rem);
+  padding-top: clamp(1px, 0.4vh, 5px);
+}
+
+.barra .botao,
+.acao .botao { flex: 0 1 auto; }
+
+.busca-legenda {
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 0.85vw, 0.76rem);
+  letter-spacing: 0.02em;
+  color: var(--tinta-fraca);
+}
+
+.feedback {
+  flex: 0 0 auto;
+  min-height: 2.8em;
+  max-width: 60ch;
+  margin: 0 auto;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: clamp(0.78rem, 0.95vw, 0.9rem);
+  line-height: 1.45;
+  color: var(--tinta-forte);
+  overflow-wrap: anywhere;
+}
+.feedback strong { color: var(--vermelho); }
+
+.aprender {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  background: rgba(43, 98, 73, 0.09);
+  border-left: 4px solid var(--verde);
+  border-radius: 2px;
+}
+
+.aprender__olho {
+  margin: 0 0 0.1rem;
+  font-family: var(--mono);
+  font-size: clamp(0.6rem, 0.75vw, 0.66rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--verde);
+}
+
+.aprender__texto {
+  margin: 0;
+  font-size: clamp(0.85rem, 0.95vw, 0.92rem);
+  line-height: 1.4;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+.aprender__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--toque);
+  margin-top: 0.1rem;
+  padding: 0.1rem 0;
+  font-family: var(--sans);
+  font-size: clamp(0.78rem, 0.9vw, 0.84rem);
+  font-weight: 700;
+  color: var(--azul);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.aprender__link:hover { color: #124668; }
+.aprender__link-txt { border-bottom: 0; }
+
+.atalho {
+  flex: 0 0 auto;
+  margin: 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.8vw, 0.72rem);
+  letter-spacing: 0.04em;
+  color: var(--tinta-fraca);
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------------------------
+   12. Menu (diálogo) e painéis educativos
+   -------------------------------------------------------------------------- */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 2.4vw, 24px);
+  padding-bottom: max(clamp(8px, 2.4vw, 24px), env(safe-area-inset-bottom));
+  background: rgba(19, 34, 47, 0.62);
+  overflow: hidden;
+}
+
+.menu__caixa {
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--papel-alto);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.08) 27px 28px);
+  border: 2px solid var(--tinta-forte);
+  border-radius: var(--raio);
+  box-shadow: 8px 9px 0 rgba(0, 0, 0, 0.3);
+}
+
+.menu__topo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 2px solid var(--tinta);
+}
+
+.menu__titulo {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  line-height: 1.2;
+  outline: none;
+}
+
+.menu__fechar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--toque);
+  min-height: var(--toque);
+  padding: 0 0.7rem;
+  font-family: var(--sans);
+  font-size: clamp(0.8rem, 0.95vw, 0.88rem);
+  font-weight: 700;
+  color: var(--tinta-forte);
+  background: transparent;
+  border: 2px solid var(--tinta-forte);
+  border-radius: var(--raio);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.menu__fechar:hover { background: #fffdf7; }
+
+.menu__corpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.85rem 0.95rem 1rem;
+  scrollbar-width: thin;
+}
+
+.menu__rodape {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding: 0.6rem 0.9rem 0.75rem;
+  border-top: 1px dashed rgba(34, 58, 82, 0.4);
+}
+
+.menu__rodape .botao {
+  min-height: var(--toque);
+  padding: 0.45rem 0.9rem;
+  font-size: clamp(0.82rem, 0.95vw, 0.9rem);
+}
+
+.menu__lista {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.menu__item {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  font-family: var(--sans);
+  color: var(--tinta);
+  background: var(--papel-alto);
+  border: 2px solid var(--tinta-forte);
+  border-left-width: 6px;
+  border-radius: var(--raio);
+  box-shadow: 2px 2px 0 rgba(19, 34, 47, 0.16);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+}
+.menu__item:hover { background: #fffdf7; transform: translateY(-1px); box-shadow: 3px 3px 0 rgba(19, 34, 47, 0.18); }
+.menu__item strong {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-family: var(--serif);
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+.menu__item span {
+  display: block;
+  font-size: clamp(0.84rem, 0.95vw, 0.9rem);
+  line-height: 1.4;
+  color: var(--tinta-fraca);
+}
+
+.painel__intro {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--tinta-fraca);
+  text-wrap: pretty;
+}
+
+/* cartões de direitos e saídas */
+.cartoes {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.cartao {
+  padding: 0.7rem 0.85rem;
+  background: var(--papel-alto);
+  border: 1.5px solid var(--linha);
+  border-left: 5px solid var(--tinta);
+  border-radius: var(--raio);
+}
+
+.cartao--alvo {
+  border-left-color: var(--foco);
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+.cartao__titulo {
+  margin: 0 0 0.25rem;
+  font-family: var(--serif);
+  font-size: clamp(1rem, 1.2vw, 1.1rem);
+  line-height: 1.25;
+}
+
+.cartao__texto {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.cartao__acao {
+  margin: 0 0 0.3rem;
+  padding-left: 1.15rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+p.cartao__acao { padding-left: 0; }
+.cartao__acao li { margin-bottom: 0.25rem; }
+.cartao__acao li:last-child { margin-bottom: 0; }
+
+.cartao__rotulo {
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.8vw, 0.7rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.cartao__fonte {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.85vw, 0.8rem);
+  line-height: 1.45;
+  color: var(--tinta-fraca);
+  overflow-wrap: anywhere;
+}
+
+/* tutorial */
+.passo {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.15rem 0.65rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed rgba(34, 58, 82, 0.25);
+}
+.passo:last-of-type { border-bottom: 0; }
+
+.passo__num {
+  grid-row: span 2;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--vermelho);
+  font-variant-numeric: tabular-nums;
+}
+
+.passo__titulo {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.passo__texto {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.passo__demo {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.8vw, 0.72rem);
+  color: var(--tinta-fraca);
+}
+
+.demo-q {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--tinta);
+  border-radius: 2px;
+}
+.demo-q--on { background: var(--vermelho); border-color: #6d1c16; }
+
+.demo-a {
+  width: 4px;
+  height: 11px;
+  border: 1.5px solid var(--tinta);
+  border-radius: 1px;
+}
+.demo-a--on { background: var(--verde); border-color: #1f4a37; }
+
+.demo-carta {
+  padding: 0.1rem 0.35rem;
+  color: var(--tinta);
+  background: var(--papel-alto);
+  border: 1.5px solid #2b2a26;
+  border-radius: 2px;
+}
+
+.demo-selo {
+  padding: 0 0.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+.demo-selo--encarar,
+.demo-selo--escola { color: var(--verde); }
+.demo-selo--adiar,
+.demo-selo--casa { color: var(--ambar); }
+
+.demo-carimbo {
+  padding: 0 0.35rem;
+  color: var(--vermelho);
+  letter-spacing: 0.1em;
+  border: 2px double var(--vermelho);
+  transform: rotate(-3deg);
+}
+
+.demo-tecla {
+  padding: 0 0.3rem;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--linha-forte);
+  border-radius: 2px;
+}
+
+.dicas {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.85rem;
+  background: rgba(43, 98, 73, 0.08);
+  border-left: 4px solid var(--verde);
+  border-radius: 2px;
+}
+.dicas p {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.dicas p:last-child { margin: 0; }
+.dicas strong { color: var(--verde); }
+
+.fontes {
+  margin: 0.7rem 0 0;
+  padding-left: 1.2rem;
+  font-size: clamp(0.85rem, 0.95vw, 0.92rem);
+  line-height: 1.5;
+}
+.fontes li { margin-bottom: 0.3rem; }
+
+.ressalva {
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.75rem;
+  font-size: clamp(0.85rem, 0.95vw, 0.9rem);
+  line-height: 1.5;
+  border: 1.5px solid var(--linha);
+  border-radius: var(--raio);
+}
+
+/* --------------------------------------------------------------------------
+   13. Boletim de fim de partida
+   -------------------------------------------------------------------------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  padding: clamp(10px, 3vw, 28px);
+  padding-bottom: max(clamp(10px, 3vw, 28px), env(safe-area-inset-bottom));
+  background: rgba(19, 34, 47, 0.58);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* margin:auto centraliza quando cabe e deixa rolar quando não cabe */
+.boletim {
+  position: relative;
+  width: min(560px, 100%);
+  margin: auto;
+  padding: clamp(1rem, 3.6vw, 1.9rem);
+  background: var(--papel-alto);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, 0.09) 27px 28px);
+  border: 2px solid var(--tinta-forte);
+  border-radius: var(--raio);
+  box-shadow: 8px 9px 0 rgba(0, 0, 0, 0.28);
+}
+
+.boletim__olho {
+  margin: 0 0 0.7rem;
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.8vw, 0.72rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.carimbo {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0.15rem 0 0.9rem;
+  padding: 0.28em 0.42em;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(1.45rem, 5.4vw, 2.5rem);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vermelho);
+  border: 4px double currentColor;
+  border-radius: var(--raio);
+  transform: rotate(-4deg);
+  overflow-wrap: anywhere;
+}
+
+/* quatro finais, quatro cores distintas (contrastes em layout-v3.md) */
+.carimbo--passou { color: var(--verde); }
+.carimbo--evadido { color: var(--vermelho); }
+.carimbo--desistiu { color: var(--ambar); }
+.carimbo--fora { color: var(--roxo); }
+
+.boletim__linha {
+  margin: 0 0 1rem;
+  font-family: var(--serif);
+  font-size: clamp(1rem, 1.2vw, 1.18rem);
+  line-height: 1.45;
+  color: var(--tinta-forte);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.boletim__resumo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.3rem 0.9rem;
+  margin: 0 0 1.2rem;
+  padding: 0.8rem 0 0;
+  font-size: 1rem;
+  border-top: 1px dashed rgba(34, 58, 82, 0.4);
+}
+
+.boletim__resumo dt {
+  padding-top: 0.18rem;
+  font-family: var(--mono);
+  font-size: clamp(0.66rem, 0.8vw, 0.72rem);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.boletim__resumo dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.boletim__acoes {
+  margin: 0 0 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(34, 58, 82, 0.4);
+}
+
+.boletim__acoes h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 0.8vw, 0.74rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.boletim__acoes ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: clamp(0.92rem, 1vw, 1rem);
+  line-height: 1.5;
+}
+.boletim__acoes li { margin-bottom: 0.35rem; }
+.boletim__acoes li:last-child { margin-bottom: 0; }
+
+.boletim__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+.boletim__botoes .botao { flex: 1 1 12rem; }
+
+/* --------------------------------------------------------------------------
+   14. Movimento
+   -------------------------------------------------------------------------- */
+@keyframes entra-carta {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulso {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+@keyframes vira {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(88deg); }
+  100% { transform: rotateY(0deg); }
+}
+@keyframes surge {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.carta--encarar { animation: entra-carta 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+.carta--adiar { animation: entra-carta 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) 0.05s both; }
+
+.q.pulso { animation: pulso 0.42s ease; }
+.a.pulso { animation: pulso 0.42s ease; }
+
+.carta--virando,
+.resp--virando { animation: vira 0.34s ease both; }
+
+.overlay { animation: surge 0.24s ease both; }
+.menu { animation: surge 0.2s ease both; }
+
+/* --------------------------------------------------------------------------
+   15. Responsivo
+   -------------------------------------------------------------------------- */
+
+/* --- cartas lado a lado a partir de 560px (tablet retrato, paisagem) --- */
+@media (min-width: 560px) {
+  .respostas { grid-template-columns: 1fr 1fr; }
+}
+
+/* --- celular e tablet: uma coluna, cabeçalho flutuante, sem rodapé no jogo ---
+   O botão do menu vira um quadrado de 44px sobre o canto direito do HUD; o
+   título sai de cena durante a partida para a área de jogo chegar a ~100% da
+   altura visível. O HUD reserva 52px à direita para não ficar sob o botão. */
+@media (max-width: 899px) {
+  .marca__tag { display: none; }
+
+  body.em-jogo .pagina {
+    padding-top: 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
   }
 
-  *, *::before, *::after{ box-sizing: border-box; }
-  [hidden]{ display: none !important; }
-  body.travado{ overflow: hidden; }
-
-  html{ -webkit-text-size-adjust: 100%; }
-  body{
-    margin: 0;
-    min-height: 100vh;
-    color: var(--tinta);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.5;
-    background-color: var(--papel);
-    background-image:
-      repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, .14) 27px 28px),
-      radial-gradient(rgba(120, 96, 60, .06) 1px, transparent 1px);
-    background-size: auto, 4px 4px;
-    overflow-x: hidden;
-  }
-
-  .pagina{
-    width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: clamp(14px, 4vw, 30px);
-    padding-left: max(clamp(14px, 4vw, 30px), 26px);
-    position: relative;
-  }
-  /* margem vermelha do caderno */
-  .pagina::before{
-    content: "";
+  body.em-jogo .marca {
     position: absolute;
-    top: 0; bottom: 0;
-    left: 14px;
-    width: 1.5px;
-    background: rgba(178, 71, 58, .38);
-    pointer-events: none;
-  }
-
-  /* ---------- cabeçalho ---------- */
-  .marca{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: .35rem .75rem;
-    padding-bottom: .6rem;
-    border-bottom: 2px solid var(--tinta);
-    margin-bottom: clamp(1rem, 3vw, 1.8rem);
-  }
-  .marca h1{
+    top: 0;
+    right: var(--pad-x);
+    left: auto;
+    z-index: 5;
+    width: auto;
     margin: 0;
-    font-family: var(--serif);
-    font-size: clamp(1.45rem, 5vw, 2rem);
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    line-height: 1.1;
-  }
-  .marca .marca__tag{
-    font-family: var(--mono);
-    font-size: .7rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-  }
-  @media (max-width: 480px){
-    .marca .marca__tag{ display: none; }
-  }
-
-  /* ---------- tipografia ---------- */
-  .chamada{
-    font-family: var(--serif);
-    font-size: clamp(1.3rem, 5.4vw, 2.1rem);
-    line-height: 1.25;
-    margin: 0 0 .5rem;
-    max-width: 24ch;
-  }
-  .explicacao{
-    margin: 0 0 1.6rem;
-    max-width: 48ch;
-    color: var(--tinta-fraca);
-  }
-
-  /* ---------- botões ---------- */
-  .botao{
-    font-family: var(--sans);
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: .02em;
-    color: var(--tinta-forte);
-    background: var(--papel-alto);
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    padding: .72rem 1.25rem;
-    min-height: 48px;
-    cursor: pointer;
-    box-shadow: 3px 3px 0 rgba(19, 34, 47, .25);
-    transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
-  }
-  .botao:hover:not(:disabled){ background: #fffdf7; transform: translate(-1px, -1px); box-shadow: 4px 4px 0 rgba(19, 34, 47, .25); }
-  .botao:active:not(:disabled){ transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(19, 34, 47, .25); }
-  .botao:disabled{
-    cursor: not-allowed;
-    opacity: .55;
-    transform: none;
-    box-shadow: 3px 3px 0 rgba(19, 34, 47, .12);
-  }
-  .botao--principal{
-    background: var(--tinta-forte);
-    color: #fdf9ee;
-    border-color: var(--tinta-forte);
-  }
-  .botao--principal:hover:not(:disabled){ background: #1d3243; }
-  :where(a, button, input, [tabindex]):focus-visible{
-    outline: 3px solid #1f6fa8;
-    outline-offset: 3px;
-  }
-
-  /* ---------- tela inicial ---------- */
-  .inicio-form{ max-width: 420px; }
-  .campo-rotulo{
-    display: block;
-    font-family: var(--mono);
-    font-size: .74rem;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-    margin-bottom: .3rem;
-  }
-  .campo{
-    width: 100%;
-    font-family: var(--serif);
-    font-size: 1.35rem;
-    color: var(--tinta-forte);
-    background: transparent;
+    padding: 0;
     border: 0;
+  }
+
+  body.em-jogo .marca__titulo,
+  body.em-jogo .marca__tag { display: none; }
+
+  body.em-jogo .marca__menu {
+    width: var(--toque);
+    min-width: var(--toque);
+    height: var(--toque);
+    min-height: var(--toque);
+    padding: 0;
+    font-size: 0; /* esconde o texto "Menu"; o ícone e o nome acessível ficam */
+    box-shadow: 2px 2px 0 rgba(19, 34, 47, 0.2);
+  }
+
+  body.em-jogo .marca__menu .marca__icone { width: 16px; gap: 3px; }
+
+  body.em-jogo .hud {
+    min-height: 52px;
+    padding-right: calc(var(--toque) + 0.6rem);
+  }
+
+  body.em-jogo .rodape { display: none; }
+
+  .mesa { gap: clamp(5px, 0.9vh, 10px); }
+  .cena { padding: 0.7rem 0.85rem; }
+  .feedback { min-height: 2.6em; }
+}
+
+/* --- desktop: duas colunas (cena | respostas) --- */
+@media (min-width: 900px) {
+  .pagina { box-shadow: 0 0 70px rgba(90, 70, 40, 0.12); }
+
+  .mesa {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: clamp(14px, 1.6vw, 26px);
+    padding-top: 0;
+  }
+
+  .cena { height: 100%; }
+
+  .respostas {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(96px, auto));
+    align-content: center;
+    gap: clamp(10px, 1.1vw, 18px);
+    height: 100%;
+  }
+
+  .carta { min-height: 116px; }
+
+  /* no desktop o cabeçalho fica no fluxo, com o título do jogo */
+  body.em-jogo .pagina { padding-top: var(--pad-y); }
+  body.em-jogo .marca {
+    position: static;
+    width: auto;
+    margin: 0 0 clamp(0.7rem, 1.8vh, 1.5rem);
+    padding-bottom: 0.45rem;
     border-bottom: 2px solid var(--tinta);
-    border-radius: 0;
-    padding: .3rem 0 .4rem;
-    margin-bottom: .35rem;
   }
-  .campo::placeholder{ color: #9aa5ae; font-style: italic; }
-  .campo:focus{ outline-offset: 6px; }
-  .dica{
-    margin: 0 0 1.4rem;
-    font-size: .82rem;
-    color: var(--tinta-fraca);
-  }
+  body.em-jogo .marca__titulo { display: block; font-size: clamp(1.35rem, 2.2vw, 1.9rem); }
+  body.em-jogo .marca__tag { display: inline; }
+  body.em-jogo .marca__menu { width: auto; height: auto; font-size: clamp(0.82rem, 1vw, 0.92rem); padding: 0.4rem 0.8rem; }
+  body.em-jogo .hud { min-height: 0; padding-right: 0.7rem; }
+  body.em-jogo .rodape { display: block; }
 
-  /* ---------- HUD ---------- */
-  .hud{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .5rem 1.1rem;
-    padding: .55rem .75rem;
-    background: rgba(253, 249, 238, .72);
-    border: 1.5px solid var(--linha);
-    border-radius: 3px;
-  }
-  .hud__bloco{ display: flex; align-items: center; gap: .45rem; min-width: 0; }
-  .hud__bloco--nome{ flex: 1 1 8rem; }
-  .hud__bloco--nome strong{
-    font-family: var(--serif);
-    font-size: 1rem;
-    overflow-wrap: anywhere;
-  }
-  .rotulo{
-    font-family: var(--mono);
-    font-size: .62rem;
-    letter-spacing: .13em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-    white-space: nowrap;
-  }
-  .hud__bloco--rodada strong{ font-family: var(--mono); font-size: .92rem; }
+  .aprender { max-width: 72ch; }
+  .feedback { max-width: 72ch; }
+}
 
-  .faltas{ display: flex; gap: 4px; }
-  .q{
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid var(--tinta);
-    border-radius: 2px;
-    background:
-      linear-gradient(135deg, transparent 46%, rgba(34, 58, 82, .22) 46% 54%, transparent 54%);
-    display: block;
-  }
-  .q--on{
-    background: var(--vermelho);
-    border-color: #6d1c16;
-    background-image: none;
-  }
-  .q.pulso{ animation: pulso .42s ease; }
+/* --- telas largas: usa mais a largura sem esticar a linha de texto --- */
+@media (min-width: 1440px) {
+  :root { --largura: 1320px; }
+  .mesa { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .carta { min-height: 140px; }
+  /* em tela muito alta as cartas param de crescer e o par fica centrado */
+  .respostas { grid-template-rows: repeat(2, minmax(140px, 220px)); align-content: center; }
+}
 
-  .animo{ display: flex; gap: 3px; align-items: flex-end; }
-  .a{
-    width: 5px;
-    height: 15px;
-    border: 1.5px solid var(--tinta);
-    border-radius: 1px;
-    display: block;
-    background: transparent;
-  }
-  .animo--bom .a--on{ background: var(--verde); border-color: #1f4a37; }
-  .animo--atencao .a--on{ background: var(--ambar); border-color: #6b450d; }
-  .animo--critico .a--on{ background: var(--vermelho); border-color: #6d1c16; }
-  .a.pulso{ animation: pulso .42s ease; }
+/* --- celulares estreitos --- */
+@media (max-width: 480px) {
+  .marca { gap: 0.25rem 0.5rem; }
+  .marca__titulo { font-size: clamp(1.35rem, 6.4vw, 1.6rem); }
+  .hud { gap: 0.25rem 0.6rem; }
+  .barra .botao { padding: 0.6rem 0.85rem; }
+  .boletim__resumo { gap: 0.25rem 0.7rem; }
+  .boletim__botoes .botao { flex: 1 1 100%; }
+}
 
-  .medidor-texto{
-    font-family: var(--mono);
-    font-size: .76rem;
-    color: var(--tinta-fraca);
-    white-space: nowrap;
-  }
-  .hud.alerta{ border-color: var(--vermelho); border-width: 2px; }
-  .hud.alerta .medidor-texto--faltas{ color: var(--vermelho); font-weight: 700; }
+/* --- altura curta (320x568, 360x640, 740x360 e janelas baixas) --- */
+@media (max-height: 700px) {
+  .pagina { --pad-y: 6px; }
 
-  .aviso{
-    margin: .35rem 0 0;
-    font-family: var(--mono);
-    font-size: .76rem;
-    letter-spacing: .01em;
-    color: var(--vermelho);
-  }
-  .aviso::before{ content: "▸ "; }
-  .aviso--animo{ color: var(--ambar); }
-  .aviso--faltas{ color: var(--tinta-fraca); }
+  .marca { margin-bottom: 0.35rem; padding-bottom: 0.3rem; }
+  .marca__titulo { font-size: 1.3rem; }
+  .marca__menu { min-height: var(--toque); padding: 0.25rem 0.6rem; }
 
-  /* ---------- mesa ---------- */
-  .mesa{
+  .hud { gap: 0.15rem 0.65rem; padding: 0.28rem 0.55rem; }
+  .hud__bloco { gap: 0.3rem; }
+  .hud__bloco--nome strong { font-size: 0.95rem; }
+  .rotulo { font-size: 0.62rem; }
+  .medidor-texto { font-size: 0.7rem; }
+  .q { width: 14px; height: 14px; }
+  .a { width: 5px; height: 14px; }
+
+  .aviso { font-size: 0.68rem; line-height: 1.3; }
+
+  .cena { padding: 0.5rem 0.65rem; }
+  .cena__olho { font-size: 0.6rem; margin-bottom: 0.1rem; }
+  .cena__texto { font-size: 1.02rem; line-height: 1.38; }
+
+  .carta { padding: 0.5rem 0.65rem; gap: 0.2rem; }
+  .carta__titulo { font-size: 1rem; line-height: 1.2; }
+  .carta__efeitos { font-size: 0.7rem; }
+  .selo { font-size: 0.6rem; padding: 0.12rem 0.35rem; }
+  .tecla { font-size: 0.6rem; padding: 0.12rem 0.25rem; }
+  .carta__resultado,
+  .resp__resultado { font-size: 0.68rem; padding-top: 0.25rem; margin-top: 0.3rem; }
+
+  .barra .botao { min-height: var(--toque); padding: 0.45rem 0.85rem; font-size: 0.88rem; }
+  .feedback { min-height: 0; font-size: 0.74rem; line-height: 1.35; }
+  .aprender {
+    flex: 0 1 auto;
     display: flex;
     flex-direction: column;
-    gap: .7rem;
-    padding: clamp(.6rem, 3vw, 1.2rem) 0 .2rem;
+    min-height: 0;
+    max-height: 140px;
+    overflow: hidden;
+    padding: 0.3rem 0.55rem;
   }
+  .aprender__olho { flex: 0 0 auto; }
+  .aprender__texto { flex: 1 1 auto; min-height: 0; overflow: auto; font-size: 0.76rem; line-height: 1.32; }
+  .aprender__link { flex: 0 0 auto; font-size: 0.72rem; }
+  .atalho { font-size: 0.62rem; }
+  .cena { min-height: 64px; }
+  .tela--jogo { gap: 4px; }
 
-  .cena{
-    position: relative;
-    padding: .8rem .95rem;
-    background: var(--papel-alto);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 25px, rgba(64, 104, 148, .08) 25px 26px);
-    border: 2px solid #2b2a26;
-    border-left-width: 6px;
-    border-left-color: var(--tinta);
-    border-radius: 3px;
-    box-shadow: 3px 4px 0 rgba(43, 42, 38, .14);
-  }
-  .cena__olho{
-    margin: 0 0 .2rem;
-    font-family: var(--mono);
-    font-size: .62rem;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-  }
-  .cena__texto{
-    margin: 0;
-    font-family: var(--serif);
-    font-size: clamp(1rem, 3.9vw, 1.18rem);
-    line-height: 1.35;
-    overflow-wrap: anywhere;
-  }
-  .cena--coringa{
-    background: #17150f;
-    background-image: none;
-    border-color: #000;
-    border-left-color: #000;
-    color: #f4ecda;
-    box-shadow: 5px 6px 0 rgba(0, 0, 0, .38);
-  }
-  .cena--coringa .cena__olho{ color: #cdbfa4; }
-  .cena--coringa .cena__texto{ color: #f4ecda; }
-  .cena .selo--evasao{ display: inline-block; margin-bottom: .35rem; }
-  .selo--evasao{
-    color: #ff7364;
-    border-width: 3px;
-    transform: rotate(-4deg);
-    font-size: .8rem;
-    letter-spacing: .2em;
-  }
+  .boletim { padding: 0.9rem 1rem; }
+  .carimbo { font-size: 1.35rem; margin-bottom: 0.55rem; }
+  .boletim__linha { font-size: 0.95rem; margin-bottom: 0.6rem; }
+  .boletim__resumo { font-size: 0.88rem; gap: 0.18rem 0.7rem; margin-bottom: 0.7rem; padding-top: 0.5rem; }
+  .boletim__acoes { margin-bottom: 0.6rem; padding-top: 0.5rem; }
+  .boletim__acoes ol { font-size: 0.88rem; }
+  .boletim__botoes .botao { min-height: var(--toque); padding: 0.45rem 0.8rem; font-size: 0.86rem; }
 
-  .respostas{
+  .menu { padding: 6px; }
+  .menu__topo { padding: 0.4rem 0.6rem; }
+  .menu__titulo { font-size: 1rem; }
+  .menu__fechar { min-width: var(--toque); min-height: var(--toque); font-size: 0.8rem; }
+  .menu__corpo { padding: 0.55rem 0.6rem 0.7rem; }
+  .menu__rodape { padding: 0.45rem 0.6rem 0.55rem; }
+  .menu__rodape .botao { min-height: var(--toque); font-size: 0.82rem; }
+  .cartao { padding: 0.55rem 0.65rem; }
+  .cartao__titulo { font-size: 0.98rem; }
+  .cartao__texto,
+  .cartao__acao { font-size: 0.9rem; line-height: 1.45; }
+  .passo { padding: 0.45rem 0; }
+  .passo__titulo { font-size: 0.98rem; }
+  .passo__texto { font-size: 0.9rem; line-height: 1.45; }
+}
+
+/* celular baixo: o atalho de teclado sai de cena (está no menu) para o dia
+   caber inteiro na tela */
+@media (max-height: 700px) and (max-width: 899px) {
+  .atalho { display: none; }
+
+  /* depois da escolha, a carta descartada encolhe: o espaço que ela deixa
+     vira altura para a nota "Aprenda" caber inteira, sem rolagem interna */
+  .carta--descartada {
+    min-height: 0 !important;
+    height: auto !important;
+    padding-block: 0.4rem;
+  }
+  .carta--descartada .carta__topo { display: none; }
+  .carta--descartada .carta__titulo { font-size: 0.86rem; }
+  .aprender { flex: 1 1 auto; max-height: 180px; }
+}
+
+/* 320px de largura: com tudo visível (aviso + boletim do dia + nota) o dia não
+   cabe inteiro. A cena cede o espaço e rola dentro de si, em vez de empurrar as
+   cartas por cima dos botões. */
+@media (max-width: 380px) {
+  .cena { min-height: 0; }
+  /* o rótulo "Estudante" sai para o nome caber numa linha só */
+  .hud__bloco--nome .rotulo { display: none; }
+  .hud__bloco--nome strong { font-size: 0.92rem; }
+  .carta { padding: 0.45rem 0.6rem; gap: 0.15rem; }
+  /* a nota perde o olho para sobrar linha de texto; a altura sobe porque a
+     carta descartada encolheu e o espaço está livre */
+  .aprender__olho { display: none; }
+  .aprender {
+    flex: 0 0 auto;
+    max-height: none;
+    padding: 0.25rem 0.5rem;
+    gap: 0.15rem;
+  }
+  .aprender__texto { overflow: visible; }
+  .aprender__link { min-height: 38px; padding-block: 0.1rem; }
+
+  /* em 320px, depois da escolha a nota inteira não cabe junto da cena: em vez
+     de cortar o texto, a página cresce esses poucos pixels e rola */
+  body.em-jogo:has(.carta--escolhida) .pagina { height: auto; }
+  body.em-jogo:has(.carta--escolhida) .palco,
+  body.em-jogo:has(.carta--escolhida) .tela--jogo { flex: 0 0 auto; }
+  body.em-jogo:has(.carta--escolhida) .cena { min-height: 110px; }
+  .feedback { font-size: 0.72rem; }
+}
+
+/* 320px: a tela inicial precisa caber sem esconder o botão de começar */
+@media (max-width: 340px) {
+  .inicio__cartao { padding: 0.6rem 0.75rem; }
+  #titulo-inicio {
+    font-size: 1.22rem;
+    line-height: 1.12;
+    margin-bottom: 0.35rem;
+  }
+  .explicacao {
+    line-height: 1.38;
+    margin-bottom: 0.55rem;
+  }
+  #dica-nome { display: none; }
+}
+
+/* --- paisagem de celular (740x360): cena | respostas, HUD numa linha --- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .pagina { --pad-y: 2px; --pad-x: 10px; }
+
+  body.em-jogo .marca { margin: 0; padding: 0; border: 0; }
+
+  /* a tela inicial também precisa caber em 360 de altura */
+  .marca { margin-bottom: 0.3rem; padding-bottom: 0.25rem; }
+  .marca__titulo { font-size: 1.35rem; }
+  .inicio__cartao { padding: 0.75rem 1rem; border-left-width: 6px; }
+  .chamada { font-size: 1.4rem; line-height: 1.1; margin-bottom: 0.35rem; }
+  .explicacao { max-width: none; font-size: 0.86rem; line-height: 1.45; margin-bottom: 0.7rem; }
+  .campo-rotulo { font-size: 0.68rem; margin-bottom: 0.2rem; }
+  .campo { min-height: var(--toque); font-size: 1.15rem; }
+  .dica { font-size: 0.74rem; line-height: 1.35; margin-bottom: 0.55rem; }
+  .inicio-form .botao { min-height: var(--toque); padding: 0.5rem 1rem; }
+
+  body.em-jogo .marca__menu { width: var(--toque); min-width: var(--toque); height: var(--toque); min-height: var(--toque); }
+
+  .hud {
+    min-height: 38px;
+    padding: 0.1rem 0.45rem;
+    padding-right: 46px;
+    gap: 0.1rem 0.7rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .hud__bloco { gap: 0.25rem; }
+  .hud__bloco--nome { flex: 1 1 auto; }
+  .hud__bloco--nome strong { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud__bloco--faltas,
+  .hud__bloco--animo { flex: 0 0 auto; }
+  .rotulo { font-size: 0.56rem; }
+  .medidor-texto { font-size: 0.64rem; }
+  .q { width: 12px; height: 12px; }
+  .a { width: 4px; height: 12px; }
+
+  .tela--jogo { gap: 4px; }
+
+  .aviso { font-size: 0.62rem; line-height: 1.2; }
+
+  .mesa {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 8px;
+    padding-top: 0;
+  }
+
+  .cena { height: 100%; padding: 0.4rem 0.6rem; border-left-width: 4px; }
+  .cena__olho { font-size: 0.55rem; margin-bottom: 0.05rem; }
+  .cena__texto { font-size: 1rem; line-height: 1.3; max-width: none; }
+
+  .respostas {
     grid-template-columns: 1fr 1fr;
-    gap: .7rem;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 6px;
+    height: 100%;
   }
-  .resp{
-    --rot: 0deg;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: .4rem;
-    width: 100%;
-    padding: .7rem .8rem .75rem;
-    text-align: left;
-    font: inherit;
-    color: var(--tinta);
-    background: var(--papel-alto);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 25px, rgba(64, 104, 148, .09) 25px 26px);
-    border: 2px solid #2b2a26;
-    border-radius: 3px;
-    box-shadow: 3px 4px 0 rgba(43, 42, 38, .16);
-    cursor: pointer;
-    transform: rotate(var(--rot));
-    transition: transform .14s ease, box-shadow .14s ease, opacity .24s ease, background-color .14s ease;
-  }
-  .resp:hover:not(:disabled){ transform: rotate(var(--rot)) translateY(-2px); box-shadow: 4px 6px 0 rgba(43, 42, 38, .2); }
-  .resp:active:not(:disabled){ transform: rotate(var(--rot)) translateY(1px); box-shadow: 1px 2px 0 rgba(43, 42, 38, .16); }
-  .resp:disabled{ cursor: default; }
-  .resp--escola{ animation: entra-carta .28s cubic-bezier(.2, .8, .3, 1) both; }
-  .resp--casa{ animation: entra-carta .28s cubic-bezier(.2, .8, .3, 1) .05s both; }
 
-  .resp__topo{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-  }
-  .selo{
-    display: inline-block;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: .68rem;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    padding: .22rem .45rem;
-    border: 2px solid currentColor;
-    border-radius: 2px;
-    transform: rotate(-3deg);
-    color: var(--tinta);
-  }
-  .selo--escola{ color: var(--verde); }
-  .selo--casa{ color: var(--vermelho); }
-  .tecla{
-    font-family: var(--mono);
-    font-size: .66rem;
-    line-height: 1;
-    color: var(--tinta-fraca);
-    border: 1px solid var(--linha);
-    border-radius: 2px;
-    padding: .2rem .3rem;
-    background: rgba(255, 255, 255, .5);
-  }
-  .resp__titulo{
-    font-family: var(--serif);
-    font-size: clamp(1rem, 4vw, 1.14rem);
+  .carta { min-height: 0; height: 100%; padding: 0.4rem 0.5rem; gap: 0.15rem; }
+  .carta__titulo { font-size: 0.92rem; line-height: 1.18; }
+  .carta__efeitos { font-size: 0.64rem; gap: 0.05rem 0.45rem; }
+  .selo { font-size: 0.55rem; padding: 0.08rem 0.3rem; border-width: 1.5px; }
+  .tecla { font-size: 0.55rem; padding: 0.08rem 0.2rem; }
+  .carta__resultado,
+  .resp__resultado { font-size: 0.6rem; padding-top: 0.2rem; margin-top: 0.2rem; }
+  .carta--descartada::after { font-size: 0.52rem; padding: 0.08rem 0; }
+
+  .barra { padding-top: 0; gap: 0.5rem; }
+  .barra .botao { min-height: var(--toque); padding: 0.3rem 0.8rem; font-size: 0.82rem; }
+
+  .feedback {
+    min-height: 0;
+    max-width: none;
+    font-size: 0.7rem;
     line-height: 1.25;
-    overflow-wrap: anywhere;
-  }
-  .resp__efeitos{
-    display: flex;
-    flex-wrap: wrap;
-    gap: .1rem .6rem;
-    font-family: var(--mono);
-    font-size: .72rem;
-    letter-spacing: .02em;
-  }
-  .efeito{ white-space: nowrap; }
-  .efeito--bom{ color: var(--verde); }
-  .efeito--ruim{ color: var(--vermelho); }
-  .efeito--neutro{ color: var(--tinta-fraca); }
-
-  .resp__resultado{
-    display: block;
-    margin: 0;
-    padding-top: .35rem;
-    border-top: 1px dashed rgba(34, 58, 82, .4);
-    font-family: var(--mono);
-    font-size: .7rem;
-    line-height: 1.4;
-    color: var(--tinta-forte);
-  }
-
-  .resp--escolhida{
-    border-color: var(--verde);
-    box-shadow: 4px 5px 0 rgba(43, 98, 73, .28);
-    background-color: #f6fbf3;
-  }
-  .resp--descartada{
-    opacity: .42;
-    filter: grayscale(.7);
-    box-shadow: 1px 2px 0 rgba(43, 42, 38, .1);
-  }
-  .resp--descartada::after{
-    content: "deixada de lado";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: .38rem;
-    transform: rotate(-3deg);
-    font-family: var(--mono);
-    font-size: .62rem;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    text-align: center;
-    color: var(--vermelho);
-    border-top: 2px solid var(--vermelho);
-    border-bottom: 2px solid var(--vermelho);
-    padding: .14rem 0;
-    background: rgba(253, 249, 238, .92);
-  }
-  .resp--descartada .resp__efeitos{ visibility: hidden; }
-  .resp--virando{ animation: vira .34s ease both; }
-
-  /* ---------- rodapé do jogo ---------- */
-  .feedback{
-    min-height: 2.9em;
-    max-width: 54ch;
-    margin: .55rem auto .1rem;
-    text-align: center;
-    font-family: var(--mono);
-    font-size: .82rem;
-    line-height: 1.5;
-    color: var(--tinta-forte);
-    overflow-wrap: anywhere;
-  }
-  .feedback strong{ color: var(--vermelho); }
-  .acao{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .7rem;
-    flex-wrap: wrap;
-    margin-top: .3rem;
-  }
-  .acao .botao{ font-size: .9rem; padding: .55rem 1rem; }
-  .busca-legenda{
-    font-family: var(--mono);
-    font-size: .7rem;
-    letter-spacing: .03em;
-    color: var(--tinta-fraca);
-  }
-  .atalho{
-    font-family: var(--mono);
-    font-size: .66rem;
-    letter-spacing: .05em;
-    color: var(--tinta-fraca);
-    text-align: center;
-  }
-
-  /* ---------- fim de partida ---------- */
-  .overlay{
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(12px, 4vw, 28px);
-    background: rgba(19, 34, 47, .55);
-    overflow-y: auto;
-    animation: surge .28s ease both;
-  }
-  .boletim{
-    width: min(520px, 100%);
-    max-height: 100%;
-    overflow-y: auto;
-    background: var(--papel-alto);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, .1) 27px 28px);
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    box-shadow: 8px 9px 0 rgba(0, 0, 0, .28);
-    padding: clamp(1rem, 4.4vw, 1.9rem);
-    position: relative;
-  }
-  .boletim__olho{
-    font-family: var(--mono);
-    font-size: .64rem;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-    margin: 0 0 .7rem;
-  }
-  .carimbo{
-    display: inline-block;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: clamp(1.4rem, 7.6vw, 2.2rem);
-    line-height: 1;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--vermelho);
-    border: 4px double currentColor;
-    border-radius: 3px;
-    padding: .3em .45em;
-    transform: rotate(-4.5deg);
-    margin: .2rem 0 .9rem;
-    opacity: .92;
-  }
-  .carimbo--passou{ color: var(--verde); }
-  .carimbo--fora{ color: var(--vermelho-forte); }
-  .carimbo--evadido{ color: var(--vermelho); }
-  .carimbo--desistiu{ color: var(--ambar); }
-  .boletim__linha{
-    font-family: var(--serif);
-    font-size: clamp(1rem, 4.2vw, 1.16rem);
-    line-height: 1.4;
-    margin: 0 0 1rem;
-    overflow-wrap: anywhere;
-  }
-  .boletim__resumo{
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: .28rem .9rem;
-    margin: 0 0 1.2rem;
-    padding: .8rem 0 0;
-    border-top: 1px dashed rgba(34, 58, 82, .4);
-    font-size: .9rem;
-  }
-  .boletim__resumo dt{
-    font-family: var(--mono);
-    font-size: .68rem;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-    padding-top: .16rem;
-  }
-  .boletim__resumo dd{ margin: 0; overflow-wrap: anywhere; }
-
-  .sr-only{
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .rodape{
-    margin: 1.6rem 0 0;
-    padding-top: .55rem;
-    border-top: 1px dashed rgba(34, 58, 82, .3);
-    font-family: var(--mono);
-    font-size: .64rem;
-    letter-spacing: .04em;
-    line-height: 1.55;
-    color: var(--tinta-fraca);
-  }
-
-  /* ---------- menu e painéis educativos ---------- */
-  .marca__menu{
-    margin-left: auto;
-    align-self: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .45rem;
-    min-height: 44px;
-    padding: .35rem .75rem;
-    font-family: var(--sans);
-    font-size: .86rem;
-    font-weight: 700;
-    letter-spacing: .03em;
-    color: var(--tinta-forte);
-    background: var(--papel-alto);
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    box-shadow: 2px 2px 0 rgba(19, 34, 47, .22);
-    cursor: pointer;
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .marca__menu:hover{ transform: translate(-1px, -1px); box-shadow: 3px 3px 0 rgba(19, 34, 47, .22); }
-  .marca__menu:active{ transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(19, 34, 47, .22); }
-  .marca__icone{ display: inline-flex; flex-direction: column; justify-content: center; gap: 3px; width: 15px; }
-  .marca__icone span{ display: block; height: 2px; background: currentColor; }
-
-  .menu{
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(8px, 2.6vw, 24px);
-    background: rgba(19, 34, 47, .62);
-    overflow: hidden;
-    animation: surge .2s ease both;
-  }
-  .menu__caixa{
-    display: flex;
-    flex-direction: column;
-    width: min(560px, 100%);
-    max-height: 100%;
-    background: var(--papel-alto);
-    background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(64, 104, 148, .1) 27px 28px);
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    box-shadow: 8px 9px 0 rgba(0, 0, 0, .3);
-  }
-  .menu__topo{
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .8rem;
-    padding: .65rem .9rem;
-    border-bottom: 2px solid var(--tinta);
-  }
-  .menu__titulo{ margin: 0; font-family: var(--serif); font-size: 1.1rem; line-height: 1.2; }
-  .menu__fechar{
-    flex: 0 0 auto;
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 .6rem;
-    font-family: var(--sans);
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--tinta-forte);
-    background: transparent;
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  .menu__corpo{ flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: .8rem .9rem 1rem; }
-  .menu__rodape{
-    flex: 0 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: .5rem;
-    justify-content: flex-end;
-    padding: .6rem .9rem .75rem;
-    border-top: 1px dashed rgba(34, 58, 82, .4);
-  }
-  .menu__rodape .botao{ font-size: .82rem; padding: .45rem .8rem; min-height: 44px; }
-
-  .menu__lista{ display: grid; gap: .55rem; }
-  .menu__item{
-    display: block;
-    width: 100%;
     text-align: left;
-    padding: .6rem .75rem;
-    font-family: var(--sans);
-    color: var(--tinta);
-    background: var(--papel-alto);
-    border: 2px solid var(--tinta-forte);
-    border-radius: 3px;
-    box-shadow: 2px 2px 0 rgba(19, 34, 47, .16);
-    cursor: pointer;
   }
-  .menu__item:hover{ background: #fffdf7; }
-  .menu__item strong{ display: block; font-family: var(--serif); font-size: 1.02rem; }
-  .menu__item span{ display: block; font-size: .78rem; color: var(--tinta-fraca); }
 
-  .cartoes{ display: grid; gap: .6rem; }
-  .cartao{
-    padding: .6rem .75rem;
-    background: var(--papel-alto);
-    border: 1.5px solid var(--linha);
-    border-left: 5px solid var(--tinta);
-    border-radius: 3px;
-  }
-  .cartao--alvo{ border-left-color: #1f6fa8; outline: 3px solid #1f6fa8; outline-offset: 2px; }
-  .cartao__titulo{ margin: 0 0 .2rem; font-family: var(--serif); font-size: 1rem; line-height: 1.25; }
-  .cartao__texto{ margin: 0 0 .3rem; font-size: .84rem; line-height: 1.4; }
-  .cartao__acao{ margin: 0 0 .25rem; font-size: .8rem; line-height: 1.4; }
-  .cartao__rotulo{ font-family: var(--mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-fraca); }
-  .cartao__fonte{ margin: 0; font-family: var(--mono); font-size: .62rem; line-height: 1.35; color: var(--tinta-fraca); }
-  .painel__intro{ margin: 0 0 .7rem; font-size: .84rem; line-height: 1.45; color: var(--tinta-fraca); }
-
-  .passo{
-    display: grid;
-    grid-template-columns: 1.8rem 1fr;
-    gap: .1rem .6rem;
-    padding: .5rem 0;
-    border-bottom: 1px dashed rgba(34, 58, 82, .25);
-  }
-  .passo:last-of-type{ border-bottom: 0; }
-  .passo__num{ grid-row: span 2; font-family: var(--mono); font-size: .8rem; font-weight: 700; color: var(--vermelho); }
-  .passo__titulo{ margin: 0; font-family: var(--serif); font-size: .98rem; line-height: 1.25; }
-  .passo__texto{ margin: 0; font-size: .82rem; line-height: 1.4; }
-  .passo__demo{ grid-column: 2; display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: .3rem; font-family: var(--mono); font-size: .62rem; }
-  .demo-q{ width: 12px; height: 12px; border: 1.5px solid var(--tinta); border-radius: 2px; }
-  .demo-q--on{ background: var(--vermelho); border-color: #6d1c16; }
-  .demo-a{ width: 4px; height: 11px; border: 1.5px solid var(--tinta); border-radius: 1px; }
-  .demo-a--on{ background: var(--verde); border-color: #1f4a37; }
-  .demo-carta{ border: 1.5px solid #2b2a26; border-radius: 2px; padding: .08rem .3rem; background: var(--papel-alto); color: var(--tinta); }
-  .demo-selo{ border: 1.5px solid currentColor; border-radius: 2px; padding: 0 .25rem; font-weight: 700; letter-spacing: .08em; }
-  .demo-selo--escola{ color: var(--verde); }
-  .demo-selo--casa{ color: var(--vermelho); }
-  .demo-carimbo{ border: 2px double var(--vermelho); padding: 0 .3rem; letter-spacing: .1em; color: var(--vermelho); transform: rotate(-3deg); }
-  .demo-tecla{ border: 1px solid var(--linha); border-radius: 2px; padding: 0 .25rem; background: rgba(255, 255, 255, .5); }
-
-  .dicas{ margin: .8rem 0 0; padding: .6rem .75rem; background: rgba(43, 98, 73, .08); border-left: 4px solid var(--verde); }
-  .dicas p{ margin: 0 0 .3rem; font-size: .82rem; line-height: 1.4; }
-  .dicas p:last-child{ margin: 0; }
-  .dicas strong{ color: var(--verde); }
-
-  .fontes{ margin: .6rem 0 0; padding-left: 1.1rem; font-size: .8rem; line-height: 1.45; }
-  .fontes li{ margin-bottom: .25rem; }
-  .ressalva{ margin: .8rem 0 0; padding: .55rem .7rem; border: 1.5px solid var(--linha); border-radius: 3px; font-size: .78rem; line-height: 1.4; }
-
-  /* nota "Aprenda" durante a partida */
-  .aprender{
-    max-width: 54ch;
-    margin: .4rem auto .15rem;
-    padding: .4rem .65rem;
-    text-align: left;
-    background: rgba(43, 98, 73, .09);
-    border-left: 4px solid var(--verde);
-    border-radius: 2px;
-  }
-  .aprender__olho{ margin: 0 0 .1rem; font-family: var(--mono); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--verde); font-weight: 700; }
-  .aprender__texto{ margin: 0; font-size: .8rem; line-height: 1.38; }
-  .aprender__link{
-    display: inline-flex;
+  /* a nota "Aprenda" vira uma faixa horizontal para não comer a altura */
+  .aprender {
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    margin-top: .15rem;
-    padding: .15rem 0;
-    min-height: 44px;
-    font-family: var(--sans);
-    font-size: .74rem;
-    font-weight: 700;
-    color: #1a5c8a;
-    background: none;
-    border: 0;
-    cursor: pointer;
+    gap: 0.6rem;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    padding: 0.15rem 0.5rem;
   }
-  .aprender__link-txt{ border-bottom: 1.5px solid currentColor; }
-  .aprender__link:hover{ color: #124668; }
+  .aprender__olho { flex: 0 0 auto; margin: 0; font-size: 0.55rem; }
+  .aprender__texto { flex: 1 1 auto; font-size: 0.7rem; line-height: 1.25; overflow: visible; }
+  .aprender__link { flex: 0 0 auto; min-height: var(--toque); margin: 0; font-size: 0.68rem; }
 
-  .boletim__acoes{ margin: 0 0 1rem; padding-top: .8rem; border-top: 1px dashed rgba(34, 58, 82, .4); }
-  .boletim__acoes h3{ margin: 0 0 .35rem; font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-fraca); }
-  .boletim__acoes ol{ margin: 0; padding-left: 1.1rem; font-size: .88rem; line-height: 1.45; }
-  .boletim__acoes li{ margin-bottom: .3rem; }
-  .boletim__botoes{ display: flex; flex-wrap: wrap; gap: .6rem; }
-  .boletim__botoes .botao{ font-size: .9rem; }
+  .atalho { display: none; }
+  .rodape { display: none; }
 
-  /* ---------- celular: respostas empilhadas ---------- */
-  @media (max-width: 560px){
-    .respostas{ grid-template-columns: 1fr; gap: .5rem; }
-  }
+  /* diálogos ocupam a altura toda, com o corpo rolando */
+  .menu { padding: 4px; }
+  .menu__caixa { width: min(680px, 100%); }
+  .menu__topo { padding: 0.3rem 0.6rem; }
+  .menu__corpo { padding: 0.45rem 0.6rem 0.6rem; }
 
-  /* ---------- tela curta (ex.: 360x640): jogo inteiro sem rolagem ---------- */
-  @media (max-height: 720px){
-    .pagina{ padding-top: 4px; padding-bottom: 2px; }
-    .pagina::before{ left: 8px; }
-    .marca{ padding-bottom: .16rem; margin-bottom: .2rem; border-bottom-width: 1.5px; }
-    .marca h1{ font-size: .96rem; letter-spacing: .02em; }
-    .hud{ gap: .08rem .66rem; padding: .14rem .34rem; }
-    .hud__bloco{ gap: .28rem; }
-    .hud__bloco--nome strong{ font-size: .82rem; }
-    .hud__bloco--faltas, .hud__bloco--animo{ flex: 1 1 100%; }
-    .hud__bloco--rodada{ margin-left: auto; }
-    .q{ width: 12px; height: 12px; }
-    .a{ width: 4px; height: 11px; }
-    .rotulo{ font-size: .54rem; }
-    .medidor-texto{ font-size: .66rem; }
-    .aviso{ font-size: .62rem; margin-top: .1rem; line-height: 1.28; }
-    .mesa{ gap: .28rem; padding-top: .24rem; }
-    .cena{ padding: .4rem .56rem; box-shadow: 2px 3px 0 rgba(43, 42, 38, .12); }
-    .cena__olho{ font-size: .5rem; margin-bottom: .05rem; }
-    .cena__texto{ font-size: .88rem; line-height: 1.24; }
-    .resp{ padding: .36rem .54rem .4rem; gap: .12rem; box-shadow: 2px 3px 0 rgba(43, 42, 38, .13); }
-    .resp__titulo{ font-size: .88rem; line-height: 1.18; }
-    .resp__efeitos{ font-size: .6rem; }
-    .selo{ font-size: .54rem; padding: .1rem .3rem; }
-    .tecla{ font-size: .52rem; padding: .1rem .18rem; }
-    .resp__resultado{ font-size: .58rem; padding-top: .16rem; }
-    .feedback{ min-height: 2.6em; margin: .26rem auto 0; font-size: .66rem; line-height: 1.3; }
-    .acao{ margin-top: .08rem; gap: .38rem; }
-    .acao .botao{ font-size: .76rem; padding: .3rem .66rem; min-height: 38px; }
-    .busca-legenda{ font-size: .56rem; }
-    .atalho{ font-size: .54rem; margin: 0; }
-    /* em tela curta, o rodapé de privacidade sai de cena no jogo para o dia
-       caber em 360x640; o texto segue na tela inicial e em "Sobre e fontes" */
-    body.em-jogo .rodape{ display: none; }
-    .rodape{ margin-top: .3rem; padding-top: .2rem; font-size: .52rem; line-height: 1.38; }
-    .marca__menu{ min-height: 44px; padding: .2rem .55rem; font-size: .74rem; }
-    .marca__icone{ width: 12px; gap: 2px; }
-    .menu{ padding: 6px; }
-    .menu__topo{ padding: .35rem .55rem; }
-    .menu__titulo{ font-size: .92rem; }
-    .menu__fechar{ min-width: 40px; min-height: 40px; font-size: .74rem; padding: 0 .45rem; }
-    .menu__corpo{ padding: .45rem .55rem .6rem; }
-    .menu__rodape{ padding: .4rem .55rem .5rem; }
-    .menu__rodape .botao{ font-size: .74rem; padding: .3rem .6rem; min-height: 40px; }
-    .menu__item{ padding: .45rem .55rem; }
-    .menu__item strong{ font-size: .92rem; }
-    .menu__item span{ font-size: .7rem; }
-    .cartao{ padding: .45rem .55rem; }
-    .cartao__titulo{ font-size: .9rem; }
-    .cartao__texto, .cartao__acao{ font-size: .76rem; }
-    .passo{ padding: .35rem 0; }
-    .passo__titulo{ font-size: .9rem; }
-    .passo__texto{ font-size: .74rem; }
-    .aprender{ margin: .1rem auto .05rem; padding: .22rem .5rem; }
-    .aprender__olho{ margin: 0 0 .05rem; font-size: .52rem; }
-    .aprender__texto{ font-size: .68rem; line-height: 1.3; }
-    .aprender__link{ font-size: .64rem; min-height: 44px; margin-top: .05rem; }
-    .boletim__acoes ol{ font-size: .8rem; }
-    .boletim__botoes .botao{ font-size: .8rem; padding: .45rem .7rem; }
-    .boletim{ padding: .7rem .85rem; }
-    .boletim__olho{ margin-bottom: .3rem; }
-    .carimbo{ font-size: 1.3rem; margin: .1rem 0 .45rem; padding: .24em .4em; }
-    .boletim__linha{ font-size: .9rem; line-height: 1.3; margin-bottom: .5rem; }
-    .boletim__resumo{ gap: .1rem .7rem; margin-bottom: .5rem; padding-top: .45rem; font-size: .78rem; }
-    .boletim__acoes{ margin-bottom: .5rem; padding-top: .45rem; }
-    .boletim__acoes h3{ margin-bottom: .18rem; }
-    .boletim__acoes li{ margin-bottom: .15rem; }
-    .boletim__botoes .botao{ font-size: .76rem; padding: .35rem .6rem; min-height: 40px; }
+  .overlay { padding: 6px; }
+  .boletim { width: min(720px, 100%); padding: 0.8rem 1rem; }
+  .carimbo { font-size: 1.3rem; margin-bottom: 0.4rem; }
+  .boletim__linha { font-size: 0.9rem; margin-bottom: 0.45rem; }
+  .boletim__resumo { font-size: 0.82rem; gap: 0.12rem 0.6rem; margin-bottom: 0.5rem; padding-top: 0.4rem; }
+  .boletim__acoes { margin-bottom: 0.5rem; padding-top: 0.4rem; }
+  .boletim__botoes .botao { min-height: var(--toque); }
+}
+
+/* --------------------------------------------------------------------------
+   16. Movimento reduzido — vale para tudo, inclusive o que o JS dispara
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 
-  /* ---------- animações ---------- */
-  @keyframes entra-carta{
-    from{ opacity: 0; transform: rotate(var(--rot)) translateY(6px); }
-    to{ opacity: 1; transform: rotate(var(--rot)) translateY(0); }
-  }
-  @keyframes pulso{
-    0%{ transform: scale(1); }
-    45%{ transform: scale(1.5); }
-    100%{ transform: scale(1); }
-  }
-  @keyframes vira{
-    0%{ transform: rotate(var(--rot)) rotateY(0deg); }
-    50%{ transform: rotate(var(--rot)) rotateY(88deg); }
-    100%{ transform: rotate(var(--rot)) rotateY(0deg); }
-  }
-  @keyframes surge{
-    from{ opacity: 0; }
-    to{ opacity: 1; }
-  }
-  @keyframes entra-fade{
-    from{ opacity: 0; }
-    to{ opacity: 1; }
-  }
+  .carta--encarar,
+  .carta--adiar,
+  .carta--virando,
+  .q.pulso,
+  .a.pulso,
+  .overlay,
+  .menu { animation: none !important; }
 
-  @media (prefers-reduced-motion: reduce){
-    .resp--escola, .resp--casa{ animation: entra-fade .16s ease both; }
-    .resp--virando{ animation: none; }
-    .overlay{ animation: entra-fade .16s ease both; }
-    .menu{ animation: entra-fade .16s ease both; }
-    .q.pulso{ animation: none; }
-    .a.pulso{ animation: none; }
-    .botao, .resp{ transition: none; }
-    .botao:hover:not(:disabled), .resp:hover:not(:disabled){ transform: none; }
-  }
+  .botao:hover:not(:disabled),
+  .carta:hover:not(:disabled),
+  .menu__item:hover { transform: none; }
+}
 </style>
 </head>
 <body>
 
 <div class="pagina">
   <header class="marca">
-    <h1>Falta Pouco</h1>
-    <span class="marca__tag">o dia pede uma resposta</span>
+    <h1 class="marca__titulo">Falta Pouco</h1>
+    <p class="marca__tag">encarar ou adiar</p>
     <button class="marca__menu" id="btn-menu" type="button" aria-haspopup="dialog" aria-controls="menu">
       <span class="marca__icone" aria-hidden="true"><span></span><span></span><span></span></span>
-      Menu
+      <span>Menu</span>
     </button>
   </header>
 
-  <main>
+  <main class="palco">
     <!-- ================= TELA INICIAL ================= -->
-    <section id="tela-inicio" aria-labelledby="titulo-inicio">
-      <h2 class="chamada" id="titulo-inicio">Doze dias. Duas respostas. Oito faltas.</h2>
-      <p class="explicacao">
-        Cada dia traz uma situação com duas saídas: uma segura a frequência e gasta o ânimo,
-        a outra devolve o ânimo e cobra a falta. Você escolhe uma; a outra fica para trás.
-      </p>
-
-      <form id="form-inicio" class="inicio-form" novalidate>
-        <label class="campo-rotulo" for="campo-nome">Como você se chama?</label>
-        <input
-          class="campo"
-          id="campo-nome"
-          name="nome"
-          type="text"
-          maxlength="20"
-          autocomplete="off"
-          autocapitalize="words"
-          spellcheck="false"
-          placeholder="Estudante"
-          aria-describedby="dica-nome">
-        <p class="dica" id="dica-nome">Até 20 caracteres. Nada é salvo: recarregar a página começa outra partida.</p>
-        <button class="botao botao--principal" type="submit">Começar o bimestre</button>
-      </form>
+    <section class="tela tela--inicio" id="tela-inicio" aria-labelledby="titulo-inicio">
+      <div class="inicio__cartao">
+        <h2 class="chamada" id="titulo-inicio">Doze dias, duas respostas — e as duas terminam na escola.</h2>
+        <p class="explicacao">
+          Cada dia traz uma situação real: trabalho, dinheiro, família, transporte, medo.
+          As duas respostas mantêm você na escola; o que muda é quando o preço aparece.
+          Encarar resolve agora e gasta ânimo. Adiar alivia agora e cobra a falta depois.
+        </p>
+        <form class="inicio-form" id="form-inicio" novalidate>
+          <label class="campo-rotulo" for="campo-nome">Como você se chama?</label>
+          <input class="campo" id="campo-nome" name="nome" type="text" maxlength="20"
+                 autocomplete="off" autocapitalize="words" spellcheck="false"
+                 placeholder="Estudante" aria-describedby="dica-nome">
+          <p class="dica" id="dica-nome">Até 20 caracteres. Nada é salvo: recarregar a página começa outra partida.</p>
+          <button class="botao botao--principal" type="submit">Começar o bimestre</button>
+        </form>
+      </div>
     </section>
 
     <!-- ================= TELA DE JOGO ================= -->
-    <section id="tela-jogo" hidden aria-labelledby="titulo-jogo">
+    <section class="tela tela--jogo" id="tela-jogo" hidden aria-labelledby="titulo-jogo">
       <h2 class="sr-only" id="titulo-jogo">Partida em andamento</h2>
 
       <div class="hud" id="hud">
@@ -926,6 +1868,9 @@
           <div class="animo animo--bom" id="animo" aria-hidden="true"></div>
           <span class="medidor-texto" id="animo-texto" aria-describedby="animo-rotulo">6/10</span>
         </div>
+        <div class="hud__bloco">
+          <span class="rotulo">Encarou <span id="conta-encarar">0</span> · Adiou <span id="conta-adiar">0</span></span>
+        </div>
       </div>
 
       <p class="aviso aviso--animo" id="aviso-animo" role="status" hidden>Você está pensando em desistir.</p>
@@ -934,29 +1879,37 @@
 
       <div class="mesa">
         <article class="cena" id="cena" aria-labelledby="cena-texto">
-          <span class="selo selo--evasao" id="cena-selo" hidden>Evasão</span>
+          <span class="selo selo--evasao" id="cena-selo" hidden>Imprevisto</span>
           <p class="cena__olho" id="cena-olho">O dia pede uma resposta</p>
           <p class="cena__texto" id="cena-texto"></p>
         </article>
 
         <div class="respostas" id="respostas">
-          <button class="resp resp--escola" id="resp-escola" type="button" data-opcao="escola">
-            <span class="resp__topo">
-              <span class="selo selo--escola">Escola</span>
+          <button class="carta carta--encarar" id="resp-encarar" type="button" data-opcao="encarar">
+            <span class="carta__topo">
+              <span class="selo selo--encarar" id="selo-encarar">Encarar</span>
               <span class="tecla" aria-hidden="true">1</span>
             </span>
-            <span class="resp__titulo" id="titulo-escola"></span>
-            <span class="resp__efeitos" id="efeitos-escola"></span>
+            <span class="carta__titulo" id="titulo-encarar"></span>
+            <span class="carta__efeitos" id="efeitos-encarar"></span>
           </button>
-          <button class="resp resp--casa" id="resp-casa" type="button" data-opcao="casa">
-            <span class="resp__topo">
-              <span class="selo selo--casa">Casa</span>
+          <button class="carta carta--adiar" id="resp-adiar" type="button" data-opcao="adiar">
+            <span class="carta__topo">
+              <span class="selo selo--adiar" id="selo-adiar">Adiar</span>
               <span class="tecla" aria-hidden="true">2</span>
             </span>
-            <span class="resp__titulo" id="titulo-casa"></span>
-            <span class="resp__efeitos" id="efeitos-casa"></span>
+            <span class="carta__titulo" id="titulo-adiar"></span>
+            <span class="carta__efeitos" id="efeitos-adiar"></span>
           </button>
         </div>
+      </div>
+
+      <div class="barra">
+        <button class="botao botao--ajuda" id="btn-ajuda" type="button">
+          Pedir ajuda <span class="botao__contador" id="ajuda-contador" aria-hidden="true">2</span>
+        </button>
+        <span class="busca-legenda" id="ajuda-legenda"></span>
+        <button class="botao botao--principal" id="btn-proximo" type="button" hidden>Próximo dia</button>
       </div>
 
       <p class="feedback" id="feedback">Dia 1 de 12.</p>
@@ -968,13 +1921,7 @@
       </aside>
 
       <p class="sr-only" id="anuncio" aria-live="polite" aria-atomic="true"></p>
-
-      <div class="acao">
-        <button class="botao" id="btn-busca" type="button" disabled aria-describedby="busca-legenda">Usar busca ativa (−2 faltas)</button>
-        <span class="busca-legenda" id="busca-legenda"></span>
-        <button class="botao botao--principal" id="btn-proximo" type="button" hidden>Próximo dia</button>
-      </div>
-      <p class="atalho" id="atalho">1 e 2 escolhem · Tab percorre · Enter confirma</p>
+      <p class="atalho" id="atalho">1 e 2 escolhem · A pede ajuda · Tab percorre · Enter confirma</p>
     </section>
   </main>
 
@@ -997,7 +1944,7 @@
 <div class="overlay" id="fim" hidden role="dialog" aria-modal="true" aria-labelledby="fim-carimbo">
   <div class="boletim">
     <p class="boletim__olho">Boletim do bimestre</p>
-    <p class="carimbo" id="fim-carimbo">EVADIDO</p>
+    <p class="carimbo" id="fim-carimbo">PASSOU</p>
     <p class="boletim__linha" id="fim-linha"></p>
     <p class="boletim__linha" id="fim-leitura"></p>
     <dl class="boletim__resumo">
@@ -1005,8 +1952,9 @@
       <dt>Dias</dt><dd id="fim-rodadas">0</dd>
       <dt>Faltas</dt><dd id="fim-faltas">0</dd>
       <dt>Ânimo</dt><dd id="fim-animo">0</dd>
-      <dt>Escola / casa</dt><dd id="fim-escolhas">0 / 0</dd>
-      <dt>Busca ativa</dt><dd id="fim-busca">não usada</dd>
+      <dt>Encarou / adiou</dt><dd id="fim-escolhas">0 / 0</dd>
+      <dt>Ajuda</dt><dd id="fim-ajudas">nenhuma</dd>
+      <dt>Maior sequência adiando</dt><dd id="fim-adiadas">nenhuma</dd>
     </dl>
     <div class="boletim__acoes" id="fim-acoes">
       <h3>O que fazer agora</h3>
@@ -1026,167 +1974,463 @@
 <script>
 "use strict";
 
-/* Para testar o final do coringa, troque para true: a próxima rodada sorteia a
-   coringa (eliminação imediata, carimbo FORA DA ESCOLA). */
-const FORCAR_CORINGA = false;
-
 /* ===== LOGICA-PURA-INICIO ===== */
-/* Funções puras, sem DOM. Extraídas e testadas à parte em Node. */
+/* Regras do jogo, sem DOM. O simular.js extrai este bloco do index.html e mede
+   exatamente as regras que o jogo publica. */
 
-const MAX_FALTAS = 8;
-const MAX_ANIMO = 10;
+const MAX_FALTAS = 8;        /* 8 faltas = EVADIDO */
+const MAX_ANIMO = 10;        /* ânimo 0 = DESISTIU */
 const ANIMO_INICIAL = 6;
-const TOTAL_RODADAS = 12;
-const CHANCE_CORINGA = 0.01;
-const CUSTO_BUSCA = 2;
-const MIN_FALTAS_BUSCA = 2;
-/* precisa bater com o maxlength="20" do campo de nome */
+const TOTAL_DIAS = 12;
+const CHANCE_IMPREVISTO = 0.01;
+const MAX_AJUDA = 2;
+const CUSTO_AJUDA = 2;       /* faltas que o pedir ajuda tira */
+const GANHO_AJUDA = 1;       /* ânimo que o pedir ajuda devolve */
 const MAX_NOME = 20;
 
+/* Dezoito situações. sorteia 12 sem repetir. As duas respostas mantêm o aluno
+   na escola: o que muda é quando o preço aparece. */
 const SITUACOES = [
   {
-    id: "mercado",
-    cena: "O chefe do mercado chamou para dois turnos seguidos. É o dinheiro do mês.",
-    escola: { titulo: "Recusar o turno", faltas: 0, animo: -3,
-      eco: "Você disse não e foi para a aula com o celular no silencioso." },
-    casa: { titulo: "Aceitar o turno", faltas: 2, animo: 2,
-      eco: "Você fez os dois turnos. O dinheiro entrou, o corpo cobrou." }
+    id: "turno-duplo",
+    cena: "O chefe do mercado chamou para dois turnos seguidos. É o dinheiro do mês, e ele avisou que quem recusa não entra na escala de dezembro.",
+    encarar: {
+      titulo: "Recusar o turno dobrado",
+      faltas: 0,
+      animo: -2,
+      eco: "Você disse que só faz o turno da noite e foi para a aula. O celular ficou vibrando no bolso até o recreio."
+    },
+    adiar: {
+      titulo: "Aceitar hoje e resolver amanhã",
+      faltas: 2,
+      animo: 2,
+      eco: "Você fez os dois turnos e o dinheiro entrou. A aula passou sem você e o cansaço veio junto com o salário."
+    },
+    aprenda: {
+      texto: "A lei deixa trabalhar com carteira a partir dos 16 e ser aprendiz a partir dos 14, com horário compatível com a escola. Se o turno atropela a aula, procure o Conselho Tutelar ou o Ministério Público do Trabalho.",
+      direito: "trabalho"
+    }
   },
   {
-    id: "recuperacao",
-    cena: "A recuperação de matemática é hoje à tarde. Quem não aparece emenda até quarta.",
-    escola: { titulo: "Ir à recuperação", faltas: -1, animo: -1,
-      eco: "Você fez a prova e a falta saiu do sistema." },
-    casa: { titulo: "Emendar dois dias", faltas: 2, animo: 1,
-      eco: "Você deixou a prova para a próxima e emendou." }
+    id: "conta-luz",
+    cena: "A conta de luz atrasou e sua mãe pediu para você ir ao centro resolver hoje, no horário da aula. O corte está marcado para sexta.",
+    encarar: {
+      titulo: "Resolver depois da aula",
+      faltas: 0,
+      animo: -1,
+      eco: "Você foi direto da escola, pegou a fila às seis e voltou com o comprovante. Chegou em casa às nove, com a aula do dia inteira na cabeça."
+    },
+    adiar: {
+      titulo: "Deixar para amanhã",
+      faltas: 1,
+      animo: 1,
+      eco: "Você separou os papéis e saiu atrás do comprovante; a manhã passou e a aula também. A fila continua lá, e a sexta chega igual."
+    },
+    aprenda: {
+      texto: "Conta atrasada não é assunto de adolescente sozinho: o CRAS orienta a família sobre Bolsa Família e outros auxílios, e a secretaria da escola indica o caminho.",
+      direito: "dinheiro"
+    }
   },
   {
-    id: "irmao",
-    cena: "Seu irmão de seis anos está com febre e sua mãe saiu para o trabalho.",
-    escola: { titulo: "Deixar com a vizinha", faltas: 0, animo: -3,
-      eco: "A vizinha ficou com ele e você foi, ligando de hora em hora." },
-    casa: { titulo: "Ficar com ele", faltas: 1, animo: 1,
-      eco: "Você ficou com ele o dia inteiro. A febre baixou à tarde." }
+    id: "irmao-febre",
+    cena: "Seu irmão de seis anos amanheceu com febre e sua mãe saiu às cinco para o trabalho. Não tem ninguém em casa até a noite.",
+    encarar: {
+      titulo: "Deixar com a vizinha e ir",
+      faltas: 0,
+      animo: -3,
+      eco: "A vizinha ficou com ele e você foi, ligando de hora em hora. A febre baixou antes do recreio."
+    },
+    adiar: {
+      titulo: "Ficar com ele hoje",
+      faltas: 2,
+      animo: 2,
+      eco: "Você ficou, fez sopa e ele dormiu no seu colo — o alívio foi imediato. A falta entrou no sistema e a escola não soube de nada."
+    },
+    aprenda: {
+      texto: "Cuidar de irmão não pode custar sua vaga: a escola tem o dever de procurar quem falta, e a busca ativa existe para isso. Se o cuidado está sobrando para você, o Conselho Tutelar pode apoiar a família.",
+      direito: "vaga"
+    }
+  },
+  {
+    id: "avo-caiu",
+    cena: "Sua avó caiu no banheiro e precisa de alguém por perto hoje. Sua tia só chega amanhã de manhã.",
+    encarar: {
+      titulo: "Pedir à vizinha e ir",
+      faltas: 0,
+      animo: -2,
+      eco: "A vizinha passou o dia com ela e mandou foto do almoço. Você fez a prova com o celular no silencioso."
+    },
+    adiar: {
+      titulo: "Ficar com ela hoje",
+      faltas: 2,
+      animo: 2,
+      eco: "Você passou o dia com ela, fez comida e ajudou a andar — e ela ficou bem. A escola não soube de nada e o dia passou."
+    },
+    aprenda: {
+      texto: "Cuidar de alguém da família é pesado e não precisa ser resolvido sozinho. O CRAS organiza apoio à família e o Conselho Tutelar orienta quando o cuidado sobra para você.",
+      direito: "conselho"
+    }
+  },
+  {
+    id: "passe-vencido",
+    cena: "O passe escolar não renovou e você tem só o dinheiro da volta. A escola fica a quarenta minutos a pé.",
+    encarar: {
+      titulo: "Ir a pé",
+      faltas: 0,
+      animo: -1,
+      eco: "Você andou quarenta minutos, chegou no segundo tempo da primeira aula e sentou. As pernas doeram o dia inteiro."
+    },
+    adiar: {
+      titulo: "Esperar a renovação sair",
+      faltas: 2,
+      animo: 1,
+      eco: "Você ficou em casa e o dia passou mais leve. O passe não saiu, e amanhã o caminho é o mesmo."
+    },
+    aprenda: {
+      texto: "Transporte escolar é dever do poder público para quem estuda na rede pública, não é favor. Peça declaração de matrícula na secretaria e reclame na Secretaria de Educação.",
+      direito: "apoio"
+    }
+  },
+  {
+    id: "chuva-alagou",
+    cena: "Choveu a noite inteira e a rua virou rio. O ônibus não passou e o ponto final está a vinte minutos de casa.",
+    encarar: {
+      titulo: "Ir a pé até o ponto final",
+      faltas: 0,
+      animo: -2,
+      eco: "Você andou vinte minutos na chuva, molhado até o joelho, e chegou. A roupa secou no corredor."
+    },
+    adiar: {
+      titulo: "Voltar e tentar amanhã",
+      faltas: 2,
+      animo: 1,
+      eco: "Você voltou, trocou de roupa e o alívio foi imediato. No dia seguinte a rua ainda estava alagada."
+    },
+    aprenda: {
+      texto: "Se o caminho até a escola é o problema, isso é dever do poder público: a escola deve ficar perto de casa e o transporte é garantido. Sem vaga perto, procure a Secretaria com comprovante de endereço e o Conselho Tutelar.",
+      direito: "escola-perto"
+    }
+  },
+  {
+    id: "prova-matematica",
+    cena: "Tem prova de matemática na segunda aula e você não abriu o caderno. A professora avisou que não repete prova sem justificativa.",
+    encarar: {
+      titulo: "Sentar e fazer a prova",
+      faltas: 0,
+      animo: -2,
+      eco: "Você leu a primeira questão e sentiu o rosto quente. Fez o que sabia e deixou duas em branco."
+    },
+    adiar: {
+      titulo: "Faltar e estudar em casa",
+      faltas: 1,
+      animo: 1,
+      eco: "Você estudou três horas com o caderno aberto e entendeu a matéria — isso ficou. A prova já tinha passado."
+    },
+    aprenda: {
+      texto: "Nota baixa não apaga seu direito de aprender: você pode pedir o critério, contestar por escrito e pedir recuperação. A coordenação é o primeiro caminho, a Secretaria é o segundo.",
+      direito: "avaliacao"
+    }
+  },
+  {
+    id: "recuperacao-tarde",
+    cena: "A recuperação de matemática é hoje à tarde. Quem não aparece fica com a nota do bimestre.",
+    encarar: {
+      titulo: "Ficar para a recuperação",
+      faltas: -1,
+      animo: -2,
+      eco: "Você ficou até as cinco, fez a prova e uma falta antiga saiu do sistema."
+    },
+    adiar: {
+      titulo: "Deixar para a próxima chamada",
+      faltas: 1,
+      animo: 1,
+      eco: "Você saiu no horário e a tarde foi sua. A nota do bimestre fechou sem a recuperação."
+    },
+    aprenda: {
+      texto: "Recuperação é parte do direito de aprender, não favor. Se a escola não oferecer, peça por escrito à coordenação e guarde o protocolo.",
+      direito: "avaliacao"
+    }
+  },
+  {
+    id: "uniforme-rasgado",
+    cena: "A camiseta do uniforme rasgou no ombro e não tem outra lavada. A escola avisou que sem uniforme o portão não abre.",
+    encarar: {
+      titulo: "Ir assim mesmo e explicar",
+      faltas: 0,
+      animo: -2,
+      eco: "Você foi com o casaco por cima, falou com a coordenação e entrou. A costura apareceu no recreio."
+    },
+    adiar: {
+      titulo: "Esperar o dinheiro para comprar outra",
+      faltas: 2,
+      animo: 1,
+      eco: "Você ficou em casa e o dia passou sem vergonha nenhuma. O dinheiro não caiu, e o portão continua o mesmo."
+    },
+    aprenda: {
+      texto: "Material e uniforme fazem parte da educação básica gratuita. Se faltar, fale com a direção e com a Secretaria de Educação antes de deixar de ir — e registre o pedido por escrito.",
+      direito: "apoio"
+    }
+  },
+  {
+    id: "diretora-chamou",
+    cena: "A diretora mandou chamar sua mãe por causa das faltas. Sua mãe ainda não sabe e o recado está na agenda há três dias.",
+    encarar: {
+      titulo: "Sentar na frente da diretora",
+      faltas: 0,
+      animo: -3,
+      eco: "Você contou o que estava acontecendo antes da sua mãe chegar. A conversa foi dura e ninguém gritou."
+    },
+    adiar: {
+      titulo: "Faltar até o assunto esfriar",
+      faltas: 2,
+      animo: 1,
+      eco: "Você ficou dois dias fora e o alívio durou até a agenda abrir de novo. O recado continuou lá, agora com mais faltas."
+    },
+    aprenda: {
+      texto: "Quando as faltas passam do limite, a escola deve avisar o Conselho Tutelar — isso é proteção, não castigo. Você também pode procurar o Conselho antes, para contar sua versão.",
+      direito: "conselho"
+    }
+  },
+  {
+    id: "sono-turno",
+    cena: "Você pegou turno até meia-noite no depósito e o despertador tocou às cinco. O corpo não levantou na primeira nem na segunda.",
+    encarar: {
+      titulo: "Levantar no terceiro despertador",
+      faltas: 0,
+      animo: -3,
+      eco: "Você chegou atrasado, dormiu em pé na fila e copiou o quadro errado. Mas estava na sala."
+    },
+    adiar: {
+      titulo: "Dormir a manhã inteira",
+      faltas: 1,
+      animo: 2,
+      eco: "Você dormiu até o meio-dia e o corpo agradeceu na hora. A matéria do dia ficou para trás e o turno da noite continua."
+    },
+    aprenda: {
+      texto: "Cansaço e doença têm justificativa: entregue atestado no prazo e peça por escrito que a falta seja abonada. Antes dos 18, trabalho noturno é proibido — procure o Conselho Tutelar.",
+      direito: "saude"
+    }
+  },
+  {
+    id: "festa-quinze",
+    cena: "É o aniversário de quinze da sua melhor amiga, numa quinta. A festa começa às dez da noite e a aula é às sete.",
+    encarar: {
+      titulo: "Sair da festa à meia-noite",
+      faltas: 0,
+      animo: -2,
+      eco: "Você dançou duas horas, se despediu cedo e apareceu na primeira aula com olheira. Sua amiga entendeu."
+    },
+    adiar: {
+      titulo: "Ficar até o fim",
+      faltas: 2,
+      animo: 2,
+      eco: "Você ficou até as quatro e a festa valeu cada minuto. A manhã passou dormindo e a falta entrou sozinha."
+    },
+    aprenda: {
+      texto: "Faltar por lazer não é crime, mas a falta conta. Entregue justificativa, peça reposição e lembre: sua vaga continua sua.",
+      direito: "vaga"
+    }
+  },
+  {
+    id: "entrevista-aprendiz",
+    cena: "Saiu uma vaga de menor aprendiz na oficina do bairro. A entrevista é amanhã às nove, no horário da aula, e é a primeira chamada.",
+    encarar: {
+      titulo: "Remarcar para sexta",
+      faltas: 0,
+      animo: -2,
+      eco: "Você ligou, explicou que estuda de manhã e marcou para sexta às quatro. A vaga continuou lá."
+    },
+    adiar: {
+      titulo: "Ir à entrevista e resolver a aula depois",
+      faltas: 1,
+      animo: 1,
+      eco: "Você foi, entregou o currículo e saiu com esperança. A aula passou e a chamada fechou."
+    },
+    aprenda: {
+      texto: "Vaga de aprendiz tem jornada e horário protegidos, e a empresa pode ajustar o horário com a escola. Remarcar não é perder a chance: o emprego não precisa competir com a aula.",
+      direito: "trabalho"
+    }
+  },
+  {
+    id: "atestado-prazo",
+    cena: "A secretaria recebe atestado só até amanhã, no horário do intervalo. É o último prazo para abonar três faltas do bimestre.",
+    encarar: {
+      titulo: "Ir no horário do intervalo",
+      faltas: -1,
+      animo: -2,
+      eco: "Você levou os papéis, pegou o protocolo e as três faltas saíram do sistema na hora."
+    },
+    adiar: {
+      titulo: "Deixar para a semana que vem",
+      faltas: 1,
+      animo: 1,
+      eco: "Você dormiu até tarde e a manhã foi tranquila. Os atestados ficaram na mochila e o prazo fechou."
+    },
+    aprenda: {
+      texto: "Doença não é abandono: entregue o atestado no prazo e peça por escrito que a falta seja justificada. Guarde cópia do protocolo.",
+      direito: "saude"
+    }
+  },
+  {
+    id: "bullying",
+    cena: "Um grupo do segundo ano começou a gravar você no corredor. Ontem o vídeo foi para o grupo da turma e hoje tem aula com eles.",
+    encarar: {
+      titulo: "Mostrar para a coordenação",
+      faltas: 0,
+      animo: -3,
+      eco: "Você mostrou o vídeo para a coordenadora, que chamou os responsáveis. O corredor ficou pesado por uns dias."
+    },
+    adiar: {
+      titulo: "Não ir hoje",
+      faltas: 2,
+      animo: 1,
+      eco: "Você ficou em casa e o dia passou sem cruzar com eles. O vídeo continua no grupo e amanhã tem aula."
+    },
+    aprenda: {
+      texto: "Ninguém aprende com medo: a escola tem o dever de prevenir violência e bullying. Anote data, local e nomes, peça registro por escrito na direção e, se a escola não agir, procure o Conselho Tutelar.",
+      direito: "respeito"
+    }
   },
   {
     id: "sarau",
-    cena: "Tem sarau na escola hoje à noite. Na mesma hora é o aniversário da sua prima. E amanhã tem aula.",
-    escola: { titulo: "Ficar no sarau", faltas: 0, animo: -1,
-      eco: "Você leu a poesia que ensaiou, mas passou a noite pensando na festa da prima." },
-    casa: { titulo: "Ir ao aniversário", faltas: 1, animo: 2,
-      eco: "Você dançou até a uma da manhã e não acordou na hora." }
+    cena: "Tem sarau na escola hoje à noite e o grêmio contou com você para ler uma poesia. Na mesma hora é o aniversário da sua prima.",
+    encarar: {
+      titulo: "Ficar no sarau",
+      faltas: 0,
+      animo: -2,
+      eco: "Você leu a poesia que ensaiou e o grêmio fechou a noite. Sua prima mandou foto do bolo."
+    },
+    adiar: {
+      titulo: "Ir ao aniversário",
+      faltas: 1,
+      animo: 1,
+      eco: "Você dançou até a uma da manhã e a festa valeu. A poesia ficou sem quem lesse, e a aula de amanhã começou sem você."
+    },
+    aprenda: {
+      texto: "Sarau, grêmio e entidade estudantil também são escola. Participar é direito e ajuda a resolver problema da escola junto com a direção.",
+      direito: "gremio"
+    }
   },
   {
-    id: "prova",
-    cena: "Tem prova de matemática na segunda aula e você não abriu o caderno.",
-    escola: { titulo: "Encarar a prova", faltas: 0, animo: -3,
-      eco: "Você sentou, leu a primeira questão e sentiu o rosto quente." },
-    casa: { titulo: "Faltar e estudar em casa", faltas: 1, animo: 1,
-      eco: "Você estudou três horas em casa. A prova já tinha passado." }
+    id: "acesso-rampa",
+    cena: "A rampa da entrada quebrou e a direção mandou recado: \"até consertarem, é melhor você estudar em casa\".",
+    encarar: {
+      titulo: "Entrar pela porta dos fundos",
+      faltas: 0,
+      animo: -2,
+      eco: "Você entrou pela cozinha, com a cadeira levantada por dois colegas, e assistiu à aula. A direção não gostou de ver você ali."
+    },
+    adiar: {
+      titulo: "Aceitar o recado e esperar o conserto",
+      faltas: 2,
+      animo: 1,
+      eco: "Você aceitou e não precisou passar por aquela porta. O conserto não tem data, e a direção considera o assunto resolvido."
+    },
+    aprenda: {
+      texto: "A escola deve se organizar para receber você: recusar acesso é discriminação, e o atendimento especializado é gratuito. Peça por escrito, procure a Secretaria de Educação, o Ministério Público ou a Defensoria Pública.",
+      direito: "inclusao"
+    }
   },
   {
-    id: "reposicao",
-    cena: "A reposição das aulas perdidas é hoje à tarde, depois da última aula.",
-    escola: { titulo: "Ficar na reposição", faltas: -1, animo: -1,
-      eco: "Você ficou até as seis e a falta saiu do sistema." },
-    casa: { titulo: "Sair mais cedo", faltas: 1, animo: 1,
-      eco: "Você saiu antes da última aula e perdeu a reposição." }
+    id: "eja-volta",
+    cena: "Você tem 18 e ainda está no 9º ano. A Secretaria abriu turma de EJA à noite e a escola chamou você para decidir hoje.",
+    encarar: {
+      titulo: "Ir à secretaria hoje",
+      faltas: 0,
+      animo: -1,
+      eco: "Você sentou com a coordenadora, viu a grade da EJA noturna e saiu com a matrícula na mão. Dá para continuar trabalhando de dia."
+    },
+    adiar: {
+      titulo: "Deixar a decisão para depois",
+      faltas: 1,
+      animo: 1,
+      eco: "Você não foi e o dia passou sem essa conversa. A turma fechou e a próxima abre no ano que vem."
+    },
+    aprenda: {
+      texto: "Quem não estudou na idade certa pode voltar pela EJA, inclusive à noite, e voltar não é atraso: é direito. Pergunte na Secretaria de Educação quais documentos levar.",
+      direito: "eja"
+    }
+  }
+];
+
+/* Quatro imprevistos. Caem em 1% dos dias, sempre dão duas respostas e nunca
+   eliminam sem o jogador responder. Não contam na corrente de adiar. */
+const IMPREVISTOS = [
+  {
+    id: "onibus-quebra",
+    motivo: "o ônibus quebrou no caminho",
+    cena: "O ônibus quebrou no meio do caminho e todo mundo desceu na marginal. O próximo passa em quarenta minutos.",
+    opcoes: [
+      {
+        titulo: "Descer e pegar outro",
+        faltas: 0,
+        animo: -2,
+        eco: "Você esperou na sombra, pegou dois ônibus e chegou na terceira aula. Perdeu a prova de inglês."
+      },
+      {
+        titulo: "Voltar para casa e tentar amanhã",
+        faltas: 1,
+        animo: -1,
+        eco: "Você voltou e o alívio veio antes do meio-dia. A aula seguiu sem você, e o ônibus continua quebrado."
+      }
+    ]
   },
   {
-    id: "luz",
-    cena: "A conta de luz atrasou e sua mãe pediu para você resolver no centro.",
-    escola: { titulo: "Resolver depois da aula", faltas: 0, animo: -2,
-      eco: "Você foi direto da escola e pegou a fila às seis." },
-    casa: { titulo: "Resolver nos próximos dias", faltas: 2, animo: 1,
-      eco: "Você faltou dois dias para andar atrás de comprovante." }
+    id: "luz-acabou",
+    motivo: "a luz acabou na véspera da prova",
+    cena: "A luz acabou na véspera da prova e o caderno ficou no escuro. Seu celular está em 4%.",
+    opcoes: [
+      {
+        titulo: "Estudar de madrugada com o celular",
+        faltas: 0,
+        animo: -2,
+        eco: "Você estudou até a bateria acabar e chegou na prova com sono. Lembrou de duas fórmulas."
+      },
+      {
+        titulo: "Dormir e encarar de manhã",
+        faltas: 0,
+        animo: -1,
+        eco: "Você dormiu e acordou descansado, com a luz de volta. A prova foi com o que já estava na cabeça."
+      }
+    ]
   },
   {
-    id: "feira",
-    cena: "Tem feira na cidade na segunda e na terça. Chamaram você para montar o som.",
-    escola: { titulo: "Recusar o serviço", faltas: 0, animo: -1,
-      eco: "Você recusou e a semana seguiu sem o dinheiro extra." },
-    casa: { titulo: "Aceitar o serviço", faltas: 2, animo: 1,
-      eco: "Você montou o som nos dois dias e voltou com o bolso cheio e as costas doendo." }
+    id: "chefe-chamou",
+    motivo: "o chefe chamou de manhã e precisava de você",
+    cena: "O chefe ligou às seis da manhã: faltou gente e ele precisa de você hoje, senão desconta o dia.",
+    opcoes: [
+      {
+        titulo: "Ir para a escola e avisar",
+        faltas: 0,
+        animo: -2,
+        eco: "Você avisou que não ia e foi para a aula. Ele desligou na sua cara."
+      },
+      {
+        titulo: "Cobrir o turno",
+        faltas: 1,
+        animo: -1,
+        eco: "Você cobriu o turno e o dia foi pago. A chamada fechou sem você."
+      }
+    ]
   },
   {
-    id: "uniforme",
-    cena: "A camiseta do uniforme rasgou e não tem outra lavada.",
-    escola: { titulo: "Ir assim mesmo", faltas: 0, animo: -1,
-      eco: "Você foi com a camiseta rasgada, a costura escondida pelo casaco e o dia inteiro sem graça." },
-    casa: { titulo: "Ficar até comprar outra", faltas: 2, animo: 1,
-      eco: "Você esperou o dinheiro cair e perdeu dois dias." }
-  },
-  {
-    id: "diretora",
-    cena: "A diretora mandou chamar sua mãe por causa das faltas. Sua mãe ainda não sabe.",
-    escola: { titulo: "Encarar a conversa", faltas: 0, animo: -3,
-      eco: "Você sentou na frente da diretora e contou o que estava acontecendo." },
-    casa: { titulo: "Faltar até esfriar", faltas: 2, animo: 1,
-      eco: "Você ficou dois dias em casa. O recado continuou lá." }
-  },
-  {
-    id: "madrugada",
-    cena: "Você pegou turno até meia-noite no depósito e o despertador toca às cinco.",
-    escola: { titulo: "Levantar e ir", faltas: 0, animo: -3,
-      eco: "Você levantou no terceiro despertador e dormiu em pé na fila." },
-    casa: { titulo: "Dormir", faltas: 2, animo: 1,
-      eco: "Você dormiu dois dias. O corpo agradeceu e a matéria ficou para trás." }
-  },
-  {
-    id: "festa",
-    cena: "É o aniversário de quinze da sua melhor amiga, numa quinta. A festa vai até tarde.",
-    escola: { titulo: "Ir para a aula na sexta", faltas: 0, animo: -3,
-      eco: "Você saiu da festa à meia-noite e apareceu na primeira aula." },
-    casa: { titulo: "Dormir depois da festa", faltas: 1, animo: 2,
-      eco: "Você ficou até o fim da festa e dormiu a manhã inteira." }
-  },
-  {
-    id: "avo",
-    cena: "Sua avó caiu e precisa de alguém em casa durante o dia.",
-    escola: { titulo: "Pedir para a vizinha", faltas: 0, animo: -3,
-      eco: "A vizinha passou o dia com ela e mandou foto do almoço." },
-    casa: { titulo: "Ficar com ela", faltas: 1, animo: 2,
-      eco: "Você passou o dia com ela, fazendo comida e ajudando a andar." }
-  },
-  {
-    id: "entrevista",
-    cena: "Saiu uma vaga de menor aprendiz. A entrevista é amanhã às nove.",
-    escola: { titulo: "Remarcar a entrevista", faltas: 0, animo: -1,
-      eco: "Você ligou, remarcou para sexta e foi para a aula." },
-    casa: { titulo: "Ir à entrevista", faltas: 1, animo: 2,
-      eco: "Você foi à entrevista e saiu de lá com esperança." }
-  },
-  {
-    id: "passe",
-    cena: "O passe escolar não renovou e você tem só o dinheiro da volta.",
-    escola: { titulo: "Ir a pé", faltas: 0, animo: -1,
-      eco: "Você andou quarenta minutos e chegou atrasado, mas chegou." },
-    casa: { titulo: "Ficar até o passe sair", faltas: 2, animo: 1,
-      eco: "Você esperou a renovação sair e perdeu dois dias." }
-  },
-  {
-    id: "chuva",
-    cena: "Choveu a noite inteira. A rua virou rio e o ônibus não passou.",
-    escola: { titulo: "Ir a pé até o ponto final", faltas: 0, animo: -2,
-      eco: "Você andou vinte minutos na chuva, molhado até o joelho." },
-    casa: { titulo: "Voltar e emendar", faltas: 2, animo: 1,
-      eco: "Você voltou e não saiu mais. No dia seguinte a rua ainda estava alagada." }
-  },
-  {
-    id: "apresentacao",
-    cena: "O trabalho de história é hoje à tarde e o grupo conta com você. O ensaio geral foi ontem, no contraturno.",
-    escola: { titulo: "Voltar para apresentar", faltas: -1, animo: -1,
-      eco: "Você chegou cedo, apresentou e uma falta antiga foi abonada." },
-    casa: { titulo: "Avisar que não vai", faltas: 2, animo: 1,
-      eco: "O grupo apresentou sem você. A nota foi dividida." }
-  },
-  {
-    id: "atestado",
-    cena: "A secretaria recebe atestado só até amanhã, no horário da aula. É o último prazo do bimestre.",
-    escola: { titulo: "Ir no horário", faltas: -1, animo: -3,
-      eco: "Você foi, entregou os papéis e a falta saiu do sistema." },
-    casa: { titulo: "Deixar para depois", faltas: 1, animo: 2,
-      eco: "Você dormiu até tarde, os atestados ficaram na mochila e a falta continuou lá." }
+    id: "parente-passou-mal",
+    motivo: "seu tio passou mal na rua",
+    cena: "Seu tio passou mal na rua e ligou para você, que é o mais perto. A ambulância já foi chamada.",
+    opcoes: [
+      {
+        titulo: "Ir ao hospital e depois para a escola",
+        faltas: 0,
+        animo: -2,
+        eco: "Você ficou no corredor até ele ser atendido e chegou na última aula. Perdeu o intervalo com os amigos."
+      },
+      {
+        titulo: "Ficar no hospital o dia todo",
+        faltas: 1,
+        animo: -1,
+        eco: "Você ficou até a noite, quando sua mãe chegou. O dia de aula passou inteiro."
+      }
+    ]
   }
 ];
 
@@ -1211,7 +2455,7 @@ function embaralhar(lista, rng) {
   return copia;
 }
 
-/* Poça embaralhada: 12 sorteios sem repetir dentro da partida. */
+/* Doze sorteios sem repetir dentro da partida. */
 function criarBaralho(situacoes, rng) {
   var fila = embaralhar(situacoes, rng);
   return {
@@ -1219,11 +2463,53 @@ function criarBaralho(situacoes, rng) {
   };
 }
 
-/* Ordem: 8 faltas > ânimo 0 > fim das rodadas. */
-function resultadoFinal(faltas, animo, rodada) {
+/* Adiar encadeia: o 2º adiar seguido soma +1 falta, o 3º +2, o 4º +3.
+   Encarar e pedir ajuda zeram a corrente. */
+function aplicarEscolha(estado, tipo, resposta) {
+  var deltaFaltas = resposta.faltas;
+  var corrente = estado.corrente;
+  var extra = 0;
+
+  if (tipo === "adiar") {
+    extra = corrente;
+    deltaFaltas = deltaFaltas + extra;
+    corrente = corrente + 1;
+  } else {
+    corrente = 0;
+  }
+
+  return {
+    faltas: aplicarFaltas(estado.faltas, deltaFaltas),
+    animo: aplicarAnimo(estado.animo, resposta.animo),
+    corrente: corrente,
+    extra: extra
+  };
+}
+
+/* Pedir ajuda: não gasta o dia, tira 2 faltas, devolve 1 de ânimo e zera a
+   corrente. Devolve null quando os dois usos já foram gastos. */
+function aplicarAjuda(estado) {
+  if (estado.ajudas >= MAX_AJUDA) return null;
+  return {
+    faltas: aplicarFaltas(estado.faltas, -CUSTO_AJUDA),
+    animo: aplicarAnimo(estado.animo, GANHO_AJUDA),
+    corrente: 0,
+    ajudas: estado.ajudas + 1
+  };
+}
+
+/* Ordem: 8 faltas > ânimo 0 > fim dos 12 dias. */
+function resultadoFinal(faltas, animo, dia) {
   if (faltas >= MAX_FALTAS) return "evadido";
   if (animo <= 0) return "desistiu";
-  if (rodada >= TOTAL_RODADAS) return "passou";
+  if (dia >= TOTAL_DIAS) return "passou";
+  return null;
+}
+
+/* O imprevisto que estoura um limite encerra como FORA DA ESCOLA: foi um dia
+   que não dependia do jogador, e ele já respondeu antes de o limite fechar. */
+function resultadoImprevisto(faltas, animo) {
+  if (faltas >= MAX_FALTAS || animo <= 0) return "fora";
   return null;
 }
 
@@ -1240,131 +2526,9 @@ function rotuloAnimo(delta) {
   var sinal = delta > 0 ? "+" : "−";
   return sinal + Math.abs(delta) + " ânimo";
 }
-
-/* Linha de leitura da partida, sem DOM. */
-function textoLeitura(resumo) {
-  var casas = resumo.casas;
-  var troca = casas === 0
-    ? "Você não trocou a escola por casa nenhuma vez"
-    : "Você trocou a escola por casa " + casas + (casas === 1 ? " vez" : " vezes");
-  var partes = troca + "; ";
-  if (resumo.buscaRodada) {
-    partes += "a busca ativa chegou na rodada " + resumo.buscaRodada + ".";
-  } else {
-    partes += "a busca ativa ficou no bolso.";
-  }
-  return partes;
-}
 /* ===== LOGICA-PURA-FIM ===== */
 
-/* ================= INTERFACE ================= */
-
-const ESPERA_VIRADA_MOVIMENTO = 340;
-const ESPERA_VIRADA_REDUZIDO = 0;
-const ESPERA_FIM_MOVIMENTO = 900;
-const ESPERA_FIM_REDUZIDO = 260;
-const LIMIAR_CONSELHO = 6;
-const LIMIAR_ANIMO = 2;
-const ROTACAO_GRAUS = 1.6;
-
-const semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-const TELAS = {
-  inicio: document.getElementById("tela-inicio"),
-  jogo: document.getElementById("tela-jogo")
-};
-const campoNome = document.getElementById("campo-nome");
-const formInicio = document.getElementById("form-inicio");
-const hud = document.getElementById("hud");
-const hudNome = document.getElementById("hud-nome");
-const elFaltas = document.getElementById("faltas");
-const elFaltasTexto = document.getElementById("faltas-texto");
-const elAnimo = document.getElementById("animo");
-const elAnimoTexto = document.getElementById("animo-texto");
-const elRodada = document.getElementById("rodada-num");
-const elAlerta = document.getElementById("alerta");
-const elAvisoAnimo = document.getElementById("aviso-animo");
-const elAvisoFaltas = document.getElementById("aviso-faltas");
-const cena = document.getElementById("cena");
-const cenaOlho = document.getElementById("cena-olho");
-const cenaSelo = document.getElementById("cena-selo");
-const cenaTexto = document.getElementById("cena-texto");
-const respEscola = document.getElementById("resp-escola");
-const respCasa = document.getElementById("resp-casa");
-const tituloEscola = document.getElementById("titulo-escola");
-const efeitosEscola = document.getElementById("efeitos-escola");
-const tituloCasa = document.getElementById("titulo-casa");
-const efeitosCasa = document.getElementById("efeitos-casa");
-const feedback = document.getElementById("feedback");
-const anuncio = document.getElementById("anuncio");
-const btnBusca = document.getElementById("btn-busca");
-const buscaLegenda = document.getElementById("busca-legenda");
-const atalho = document.getElementById("atalho");
-const aprender = document.getElementById("aprender");
-const aprenderTexto = document.getElementById("aprender-texto");
-const aprenderLink = document.getElementById("aprender-link");
-const btnProximo = document.getElementById("btn-proximo");
-const btnMenu = document.getElementById("btn-menu");
-const menu = document.getElementById("menu");
-const menuCaixa = menu.querySelector(".menu__caixa");
-const menuTitulo = document.getElementById("menu-titulo");
-const menuCorpo = document.getElementById("menu-corpo");
-const menuRodape = document.getElementById("menu-rodape");
-const menuFechar = document.getElementById("menu-fechar");
-const btnDireitosFim = document.getElementById("btn-direitos-fim");
-const fimAcoesLista = document.getElementById("fim-acoes-lista");
-const fim = document.getElementById("fim");
-const fimCarimbo = document.getElementById("fim-carimbo");
-const fimLinha = document.getElementById("fim-linha");
-const fimLeitura = document.getElementById("fim-leitura");
-const fimNome = document.getElementById("fim-nome");
-const fimRodadas = document.getElementById("fim-rodadas");
-const fimFaltas = document.getElementById("fim-faltas");
-const fimAnimo = document.getElementById("fim-animo");
-const fimEscolhas = document.getElementById("fim-escolhas");
-const fimBusca = document.getElementById("fim-busca");
-const btnDeNovo = document.getElementById("btn-de-novo");
-const boletim = document.querySelector(".boletim");
-const pagina = document.querySelector(".pagina");
-
-const quadrados = [];
-for (var qi = 0; qi < MAX_FALTAS; qi++) {
-  var quadrado = document.createElement("span");
-  quadrado.className = "q";
-  quadrado.setAttribute("aria-hidden", "true");
-  elFaltas.appendChild(quadrado);
-  quadrados.push(quadrado);
-}
-
-const tracos = [];
-for (var ti = 0; ti < MAX_ANIMO; ti++) {
-  var traco = document.createElement("span");
-  traco.className = "a";
-  traco.setAttribute("aria-hidden", "true");
-  elAnimo.appendChild(traco);
-  tracos.push(traco);
-}
-
-const estado = {
-  nome: "Estudante",
-  faltas: 0,
-  animo: ANIMO_INICIAL,
-  rodada: 0,
-  emJogo: false,
-  fase: "inicio",
-  usouBusca: false,
-  buscaRodada: 0,
-  escolas: 0,
-  casas: 0,
-  sequencia: 0,
-  situacao: null
-};
-
-var baralho = null;
-var podeAdiantar = false;
-var fimPendente = null;
-
-/* ================= CONTEÚDO EDUCATIVO ================= */
+/* ================= PAINÉIS DO MENU E BOLETIM ================= */
 
 const TITULOS_PAINEL = {
   como: "Como jogar",
@@ -1374,7 +2538,7 @@ const TITULOS_PAINEL = {
 };
 
 const MENU_ENTRADAS = [
-  { chave: "como", titulo: "Como jogar", desc: "Regras, controles e dicas em cinco passos." },
+  { chave: "como", titulo: "Como jogar", desc: "Doze dias, duas respostas e o que acontece quando você adia." },
   { chave: "direitos", titulo: "Meus direitos", desc: "Doze direitos que ajudam você a ficar na escola." },
   { chave: "saidas", titulo: "O que fazer", desc: "Oito saídas práticas, com quem procurar." },
   { chave: "sobre", titulo: "Sobre e fontes", desc: "Por que o jogo existe e de onde vêm os dados." }
@@ -1386,7 +2550,7 @@ const DIREITOS = [
     id: "vaga",
     titulo: "Sua vaga é sua",
     texto: "Estar na escola não é favor: a educação é direito de todos e dever do Estado e da família. Quem já está matriculado não perde a vaga porque faltou, sem que a escola procure a família e acione a rede de proteção.",
-    acao: "Se disserem que você perdeu a vaga, peça a decisão por escrito e procure a Secretaria de Educação e o Conselho Tutelar.",
+    acao: "Peça a decisão por escrito e procure a Secretaria de Educação e o Conselho Tutelar.",
     fonte: "CF, art. 205 e 208 · ECA, art. 53"
   },
   {
@@ -1568,139 +2732,101 @@ const SAIDAS = [
   }
 ];
 
-/* Tutorial em cinco passos, com exemplos feitos em CSS. */
+/* Tutorial em seis passos, com exemplos feitos em CSS. */
 const TUTORIAL = [
   {
-    titulo: "O objetivo",
-    texto: "Você tem 12 dias para chegar ao fim do bimestre. Pode acumular no máximo 8 faltas e o ânimo precisa ficar acima de zero. Qualquer medidor no limite encerra a partida.",
+    titulo: "Doze dias, dois medidores",
+    texto: "Você tem 12 dias para chegar ao fim do bimestre. Faltas vão de 0 a 8 e ânimo de 0 a 10 — você começa com 6. Se qualquer um dos dois bater no limite, a partida encerra.",
     demo: "medidores"
   },
   {
-    titulo: "Cada dia pede uma resposta",
-    texto: "A cena descreve uma situação real. As duas cartas mostram o preço antes de você escolher: faltas e ânimo. Uma segura a frequência e gasta o ânimo; a outra devolve ânimo e cobra a falta.",
-    demo: "cartas"
+    titulo: "Encarar",
+    texto: "Encarar resolve o problema hoje. Segura a falta (0 ou −1) e gasta ânimo (−1 a −3). É o caminho que mantém o dia inteiro dentro da escola.",
+    demo: "encarar"
   },
   {
-    titulo: "Busca ativa: uma vez por partida",
-    texto: "O botão de busca ativa tira 2 faltas e não gasta o dia. Só funciona antes de escolher e depois de você ter pelo menos 2 faltas. Usar cedo demais costuma ser desperdício.",
-    demo: "busca"
+    titulo: "Adiar",
+    texto: "Adiar alivia agora: +1 ou +2 de ânimo. O preço vem depois, em falta (+1 ou +2), e o problema continua de pé.",
+    demo: "adiar"
   },
   {
-    titulo: "Coringa e finais",
-    texto: "Existe 1% de chance por dia de cair a carta coringa, que encerra como FORA DA ESCOLA. Os outros finais são EVADIDO (8 faltas), DESISTIU (ânimo zero) e PASSOU (12 dias).",
+    titulo: "Adiar encadeia",
+    texto: "Cada adiar seguido soma uma falta extra: o segundo seguido cobra +1, o terceiro +2, o quarto +3. É assim que a bola de neve começa — e é ela que tira gente da escola.",
+    demo: "corrente"
+  },
+  {
+    titulo: "Pedir ajuda",
+    texto: "Duas vezes por partida, o botão Pedir ajuda tira 2 faltas e devolve 1 de ânimo sem gastar o dia. Só funciona antes de escolher: depois que você escolhe, o dia já foi.",
+    demo: "ajuda"
+  },
+  {
+    titulo: "Imprevisto e os quatro finais",
+    texto: "Cai um imprevisto em 1% dos dias, e ele sempre te dá duas respostas — nunca elimina sozinho. Os finais são PASSOU (12 dias), EVADIDO (8 faltas), DESISTIU (ânimo 0) e FORA DA ESCOLA (imprevisto sem saída).",
     demo: "finais"
-  },
-  {
-    titulo: "Controles e privacidade",
-    texto: "Clique nas cartas ou use 1 e 2. Tab percorre, Enter ou Espaço confirmam. Depois da escolha, leia a nota e siga no botão Próximo dia. Nada é salvo nem enviado: sem conta, sem servidor, sem áudio.",
-    demo: "teclas"
   }
 ];
 
 const DICAS = [
-  "Olhe o medidor que está mais perto do fim: é ele que decide a partida.",
-  "A busca ativa não gasta dia. Guarde para quando as faltas apertarem.",
-  "Escolher sempre o mesmo lado perde: a escola gasta ânimo, a casa cobra falta."
+  "Olhe o medidor mais perto do fim. É ele que decide a partida, não o dia que você está jogando.",
+  "Guarde o Pedir ajuda para quando as faltas apertarem. Usar com 1 falta é desperdício: ele tira 2.",
+  "Dois adiar seguidos custam mais que dois adiar separados. Se precisar adiar, encare no dia seguinte."
 ];
 
-/* Uma nota por situação, ligada a um cartão de direito. */
-const APRENDA = {
-  mercado: {
-    texto: "Trabalho não é falta de esforço: a lei permite trabalhar a partir dos 16 e ser aprendiz a partir dos 14, com horário compatível com a escola.",
-    direito: "trabalho"
+/* Textos dos quatro finais. */
+const FINAIS = {
+  passou: {
+    carimbo: "PASSOU",
+    linha: "Cada vez que você adiou, o dia seguinte foi a chance de voltar. Adiar trouxe você até aqui e voltar sempre é possível.",
+    leitura: function (r) {
+      return "Doze dias, " + r.faltas + (r.faltas === 1 ? " falta" : " faltas") +
+        " e ânimo " + r.animo + ". Você atravessou o bimestre sem deixar o problema decidir por você.";
+    },
+    acoes: [
+      "Guarde o que funcionou: qual escolha te manteve na escola?",
+      "Seus direitos continuam: vaga, transporte, alimentação e material.",
+      "Uma conversa pode ser a busca ativa de outra pessoa. Repasse o que você aprendeu.",
+      "Se o próximo bimestre apertar, comece pela ajuda — não pela falta."
+    ]
   },
-  recuperacao: {
-    texto: "Recuperação é parte do direito de aprender, não um favor. Se a escola não oferecer, peça por escrito à coordenação.",
-    direito: "avaliacao"
+  evadido: {
+    carimbo: "EVADIDO",
+    linha: "Foi o adiar que trouxe você até aqui — e voltar sempre é possível: a matrícula de volta não depende de você ter acertado antes.",
+    leitura: function (r) {
+      return r.faltas + " faltas em " + r.dias + " dias. O adiamento foi somando até o dia em que a falta não cabia mais.";
+    },
+    acoes: [
+      "Fale com a escola esta semana e peça o caminho de volta: matrícula, reposição e apoio.",
+      "Se a escola não resolver, procure o Conselho Tutelar e conte o que aconteceu.",
+      "A busca ativa existe para encontrar quem ficou fora: peça para ser procurado.",
+      "Dá para voltar: pergunte na Secretaria de Educação sobre a EJA, inclusive à noite."
+    ]
   },
-  irmao: {
-    texto: "Cuidar de irmão não pode custar sua vaga: a escola tem o dever de procurar quem falta, e o Conselho Tutelar pode apoiar a família.",
-    direito: "vaga"
+  desistiu: {
+    carimbo: "DESISTIU",
+    linha: "Adiar e encarar cansam dos dois jeitos; o que devolve o ânimo é pedir ajuda. O cansaço de hoje não apaga o direito de voltar: a escola continua sua.",
+    leitura: function (r) {
+      return "O ânimo chegou a zero no dia " + r.dias + ". Você encarou até não sobrar nada, e cansaço não é fraqueza: é sinal de que faltou apoio.";
+    },
+    acoes: [
+      "Conte para alguém da escola o que está pesando. Você não precisa resolver sozinho.",
+      "Peça apoio pedagógico e recuperação: o atraso tem caminho de volta.",
+      "Se o cansaço for constante, procure a UBS ou o CAPS. O CVV atende no 188, 24 horas.",
+      "Volte um dia de cada vez: uma aula já é recomeço."
+    ]
   },
-  sarau: {
-    texto: "Sarau, grêmio e cultura também são escola. Participar de entidade estudantil é direito previsto no ECA e fortalece o vínculo com a escola.",
-    direito: "gremio"
-  },
-  prova: {
-    texto: "Nota baixa não apaga seu direito de aprender: você pode pedir revisão do critério e recuperação, com recurso à coordenação e à Secretaria.",
-    direito: "avaliacao"
-  },
-  reposicao: {
-    texto: "Reposição é chance de recuperar conteúdo e frequência. Se o horário não der, combine com a coordenação outra forma de repor.",
-    direito: "avaliacao"
-  },
-  luz: {
-    texto: "Conta de luz não é assunto de adolescente sozinho. A escola e o CRAS podem orientar a família sobre auxílios e programas.",
-    direito: "dinheiro"
-  },
-  feira: {
-    texto: "Trabalho com carteira só a partir dos 16; antes disso, só como aprendiz, com jornada compatível com a aula.",
-    direito: "trabalho"
-  },
-  uniforme: {
-    texto: "Material e uniforme entram no direito à educação básica gratuita. Se faltar, fale com a direção e a Secretaria antes de deixar de ir.",
-    direito: "apoio"
-  },
-  diretora: {
-    texto: "Quando as faltas passam do limite, a escola deve avisar o Conselho Tutelar. Isso é proteção, não castigo: você pode procurar o Conselho antes e contar sua versão.",
-    direito: "conselho"
-  },
-  madrugada: {
-    texto: "Turno que termina de madrugada não combina com aula: a lei proíbe trabalho noturno antes dos 18. Se isso acontece, procure o Conselho Tutelar.",
-    direito: "trabalho"
-  },
-  festa: {
-    texto: "Faltar por lazer não é crime, mas a falta conta. Entregue justificativa e peça reposição: sua vaga continua sua.",
-    direito: "vaga"
-  },
-  avo: {
-    texto: "Cuidar de alguém da família é pesado e não precisa ser resolvido sozinho. O CRAS e o Conselho Tutelar podem organizar apoio.",
-    direito: "conselho"
-  },
-  entrevista: {
-    texto: "Vaga de aprendiz tem jornada e horário protegidos. Remarcar a entrevista também é uma saída: o emprego não precisa competir com a aula.",
-    direito: "trabalho"
-  },
-  passe: {
-    texto: "Passe escolar é transporte garantido para quem estuda na rede pública. Se a renovação atrasar, peça declaração na escola e reclame na Secretaria.",
-    direito: "apoio"
-  },
-  chuva: {
-    texto: "Chuva forte é motivo real de falta: registre e justifique. A escola deve considerar a situação, e o importante é não deixar a falta virar abandono.",
-    direito: "apoio"
-  },
-  apresentacao: {
-    texto: "Trabalho em grupo também é avaliação: dá para combinar outra data e pedir que a nota considere o que você fez.",
-    direito: "avaliacao"
-  },
-  atestado: {
-    texto: "Atestado é documento: entregue no prazo e peça por escrito que a falta seja justificada. Doença não é abandono.",
-    direito: "saude"
+  fora: {
+    carimbo: "FORA DA ESCOLA",
+    linha: "Imprevisto não é culpa, e nada do que veio antes apaga o direito de voltar. Adiar trouxe você até aqui e voltar sempre é possível.",
+    leitura: function (r) {
+      return "Motivo: " + r.motivo + ". Foi um dia que não dependia de você.";
+    },
+    acoes: [
+      "Procure a escola ou o Conselho Tutelar: a busca ativa existe para encontrar quem ficou fora.",
+      "Leve seus documentos e peça a matrícula e o plano de retorno.",
+      "Se precisar voltar em outro formato, pergunte sobre a EJA na Secretaria de Educação.",
+      "Se o imprevisto foi de saúde ou de família, conte o que houve e peça apoio."
+    ]
   }
-};
-
-/* Três ações concretas por final. Nunca prometem matrícula automática. */
-const ACOES_FIM = {
-  evadido: [
-    "Fale com a escola esta semana e peça o caminho de volta: matrícula, reposição e apoio.",
-    "Se a escola não resolver, procure o Conselho Tutelar e conte o que aconteceu.",
-    "Dá para voltar: pergunte na Secretaria de Educação sobre a EJA, inclusive à noite."
-  ],
-  fora: [
-    "Procure a escola ou o Conselho Tutelar: a Busca Ativa existe para encontrar quem ficou fora.",
-    "Leve seus documentos e peça a matrícula e o plano de retorno.",
-    "Se precisar voltar em outro formato, pergunte sobre a EJA na Secretaria de Educação."
-  ],
-  desistiu: [
-    "Conte para alguém da escola o que está pesando. Você não precisa resolver sozinho.",
-    "Peça apoio pedagógico e recuperação: o atraso tem caminho de volta.",
-    "Se o cansaço for constante, procure a UBS ou o CAPS. O CVV atende no 188, 24 horas."
-  ],
-  passou: [
-    "Guarde o que funcionou: qual escolha te manteve na escola?",
-    "Seus direitos continuam: vaga, transporte, alimentação e material.",
-    "Uma conversa pode ser a busca ativa de outra pessoa. Repasse o que você aprendeu."
-  ]
 };
 
 const FONTES = [
@@ -1715,6 +2841,123 @@ const FONTES = [
   "Busca Ativa Escolar — UNICEF e Undime.",
   "PNAD Contínua 2024, divulgada pelo UNICEF em 2025: 993 mil crianças e adolescentes de 4 a 17 anos fora da escola; 440 mil têm 15 a 17 anos."
 ];
+
+/* ================= ESTADO E DOM ================= */
+
+const LIMIAR_CONSELHO = 6;
+const LIMIAR_ANIMO = 2;
+const ROTACAO_GRAUS = 1.6;
+
+const TELAS = {
+  inicio: document.getElementById("tela-inicio"),
+  jogo: document.getElementById("tela-jogo")
+};
+const campoNome = document.getElementById("campo-nome");
+const formInicio = document.getElementById("form-inicio");
+const hud = document.getElementById("hud");
+const hudNome = document.getElementById("hud-nome");
+const elFaltas = document.getElementById("faltas");
+const elFaltasTexto = document.getElementById("faltas-texto");
+const elAnimo = document.getElementById("animo");
+const elAnimoTexto = document.getElementById("animo-texto");
+const elRodada = document.getElementById("rodada-num");
+const contaEncarar = document.getElementById("conta-encarar");
+const contaAdiar = document.getElementById("conta-adiar");
+const elAlerta = document.getElementById("alerta");
+const elAvisoAnimo = document.getElementById("aviso-animo");
+const elAvisoFaltas = document.getElementById("aviso-faltas");
+const cena = document.getElementById("cena");
+const cenaOlho = document.getElementById("cena-olho");
+const cenaSelo = document.getElementById("cena-selo");
+const cenaTexto = document.getElementById("cena-texto");
+const respEncarar = document.getElementById("resp-encarar");
+const respAdiar = document.getElementById("resp-adiar");
+const seloEncarar = document.getElementById("selo-encarar");
+const seloAdiar = document.getElementById("selo-adiar");
+const tituloEncarar = document.getElementById("titulo-encarar");
+const efeitosEncarar = document.getElementById("efeitos-encarar");
+const tituloAdiar = document.getElementById("titulo-adiar");
+const efeitosAdiar = document.getElementById("efeitos-adiar");
+const feedback = document.getElementById("feedback");
+const anuncio = document.getElementById("anuncio");
+const btnAjuda = document.getElementById("btn-ajuda");
+const ajudaContador = document.getElementById("ajuda-contador");
+const ajudaLegenda = document.getElementById("ajuda-legenda");
+const atalho = document.getElementById("atalho");
+const aprender = document.getElementById("aprender");
+const aprenderTexto = document.getElementById("aprender-texto");
+const aprenderLink = document.getElementById("aprender-link");
+const btnProximo = document.getElementById("btn-proximo");
+const btnMenu = document.getElementById("btn-menu");
+const menu = document.getElementById("menu");
+const menuCaixa = menu.querySelector(".menu__caixa");
+const menuTitulo = document.getElementById("menu-titulo");
+const menuCorpo = document.getElementById("menu-corpo");
+const menuRodape = document.getElementById("menu-rodape");
+const menuFechar = document.getElementById("menu-fechar");
+const btnDireitosFim = document.getElementById("btn-direitos-fim");
+const fimAcoesLista = document.getElementById("fim-acoes-lista");
+const fim = document.getElementById("fim");
+const fimCarimbo = document.getElementById("fim-carimbo");
+const fimLinha = document.getElementById("fim-linha");
+const fimLeitura = document.getElementById("fim-leitura");
+const fimNome = document.getElementById("fim-nome");
+const fimRodadas = document.getElementById("fim-rodadas");
+const fimFaltas = document.getElementById("fim-faltas");
+const fimAnimo = document.getElementById("fim-animo");
+const fimEscolhas = document.getElementById("fim-escolhas");
+const fimAjudas = document.getElementById("fim-ajudas");
+const fimAdiadas = document.getElementById("fim-adiadas");
+const btnDeNovo = document.getElementById("btn-de-novo");
+const pagina = document.querySelector(".pagina");
+
+const quadrados = [];
+for (var qi = 0; qi < MAX_FALTAS; qi++) {
+  var quadrado = document.createElement("span");
+  quadrado.className = "q";
+  quadrado.setAttribute("aria-hidden", "true");
+  elFaltas.appendChild(quadrado);
+  quadrados.push(quadrado);
+}
+
+const tracos = [];
+for (var ti = 0; ti < MAX_ANIMO; ti++) {
+  var traco = document.createElement("span");
+  traco.className = "a";
+  traco.setAttribute("aria-hidden", "true");
+  elAnimo.appendChild(traco);
+  tracos.push(traco);
+}
+
+const estado = {
+  nome: "Estudante",
+  faltas: 0,
+  animo: ANIMO_INICIAL,
+  dia: 0,
+  fase: "inicio",
+  emJogo: false,
+  ajudas: 0,
+  corrente: 0,
+  encarou: 0,
+  adiou: 0,
+  maiorCorrente: 0,
+  imprevisto: false,
+  situacao: null,
+  respostas: null
+};
+
+var baralho = null;
+var fimPendente = null;
+var motivoFora = "";
+
+/* ================= RENDER BÁSICO ================= */
+
+function criar(tag, classe, texto) {
+  var no = document.createElement(tag);
+  if (classe) no.className = classe;
+  if (texto !== undefined && texto !== null) no.textContent = texto;
+  return no;
+}
 
 /* Seta + texto: o efeito nunca depende só da cor.
    Falta a mais é ruim; ânimo a mais é bom. */
@@ -1736,18 +2979,29 @@ function montarEfeito(delta, tipo) {
   return span;
 }
 
-function preencherCarta(titulo, efeitos, resposta) {
-  titulo.textContent = resposta.titulo;
+function preencherCarta(botao, elTitulo, efeitos, resposta, extra) {
+  elTitulo.textContent = resposta.titulo;
   efeitos.textContent = "";
-  efeitos.appendChild(montarEfeito(resposta.faltas, "faltas"));
+  efeitos.appendChild(montarEfeito(resposta.faltas + extra, "faltas"));
   efeitos.appendChild(montarEfeito(resposta.animo, "animo"));
+  if (extra > 0) {
+    var nota = criar("span", "efeito efeito--ruim", "encadeado: +" + extra);
+    efeitos.appendChild(nota);
+  }
+  var rotulo = botao === respEncarar ? "Encarar" : "Adiar";
+  if (estado.imprevisto) rotulo = botao === respEncarar ? "Resposta 1" : "Resposta 2";
+  var detalhe = rotuloFaltas(resposta.faltas + extra) + ", " + rotuloAnimo(resposta.animo);
+  if (extra > 0) detalhe += " (inclui " + extra + " de adiar seguido)";
+  botao.setAttribute("aria-label", rotulo + ": " + resposta.titulo + ". " + detalhe + ".");
 }
 
 function atualizarMedidores(faltasAnterior, animoAnterior) {
   hudNome.textContent = estado.nome;
-  elRodada.textContent = String(estado.rodada);
+  elRodada.textContent = String(estado.dia);
   elFaltasTexto.textContent = estado.faltas + "/" + MAX_FALTAS;
   elAnimoTexto.textContent = estado.animo + "/" + MAX_ANIMO;
+  contaEncarar.textContent = String(estado.encarou);
+  contaAdiar.textContent = String(estado.adiou);
 
   for (var i = 0; i < quadrados.length; i++) {
     var ligado = i < estado.faltas;
@@ -1776,41 +3030,32 @@ function atualizarMedidores(faltasAnterior, animoAnterior) {
   hud.classList.toggle("alerta", estado.faltas >= LIMIAR_CONSELHO);
   elAlerta.hidden = estado.faltas < LIMIAR_CONSELHO;
   elAvisoAnimo.hidden = estado.animo > LIMIAR_ANIMO;
-  elAvisoFaltas.hidden = estado.sequencia < 2;
-  elAvisoFaltas.textContent = estado.sequencia + " dias fora seguidos";
+  elAvisoFaltas.hidden = estado.corrente < 2;
+  elAvisoFaltas.textContent = estado.corrente + " dias adiando seguidos";
 }
 
-function atualizarBusca() {
+function atualizarAjuda() {
   var naEscolha = estado.emJogo && estado.fase === "escolha";
-  var disponivel = naEscolha && !estado.usouBusca && estado.faltas >= MIN_FALTAS_BUSCA;
-  var esconder = !estado.emJogo || estado.fase !== "escolha";
+  btnAjuda.hidden = !naEscolha;
+  ajudaLegenda.hidden = !naEscolha;
+  if (!naEscolha) return;
 
-  btnBusca.disabled = !disponivel;
-  btnBusca.hidden = esconder;
+  var restam = MAX_AJUDA - estado.ajudas;
+  ajudaContador.textContent = String(restam);
 
-  var legenda = "";
-  if (estado.usouBusca) legenda = "já usada";
-  else if (estado.faltas < MIN_FALTAS_BUSCA) legenda = "disponível a partir de 2 faltas";
-  buscaLegenda.textContent = legenda;
-  buscaLegenda.hidden = esconder || legenda === "";
-}
-
-function limparAvanco() {
-  podeAdiantar = false;
-}
-
-function avancarRodada() {
-  if (!estado.emJogo || estado.fase !== "resolvido" || !podeAdiantar) return;
-  limparAvanco();
-  atualizarProximo();
-  var final = fimPendente;
-  if (final) {
-    fimPendente = null;
-    btnProximo.textContent = "Próximo dia";
-    encerrar(final, null);
+  if (restam <= 0) {
+    btnAjuda.disabled = true;
+    ajudaLegenda.textContent = "Ajuda já usada nesta partida";
+    btnAjuda.setAttribute("aria-label", "Pedir ajuda: ajuda já usada nesta partida");
     return;
   }
-  inicioDaRodada();
+  btnAjuda.disabled = false;
+  ajudaLegenda.textContent = "Pedir ajuda: −2 faltas, +1 ânimo";
+  btnAjuda.setAttribute("aria-label", "Pedir ajuda. " + restam + " de " + MAX_AJUDA + " usos. −2 faltas, +1 ânimo.");
+}
+
+function atualizarProximo() {
+  btnProximo.hidden = !(estado.emJogo && estado.fase === "resolvido");
 }
 
 /* ---------- nota "Aprenda" ---------- */
@@ -1823,7 +3068,7 @@ function tituloDoDireito(id) {
 }
 
 function mostrarAprender(situacao) {
-  var dado = situacao ? APRENDA[situacao.id] : null;
+  var dado = situacao && situacao.aprenda ? situacao.aprenda : null;
   if (!dado) { esconderAprender(); return; }
   aprenderTexto.textContent = dado.texto;
   aprenderLink.dataset.direito = dado.direito;
@@ -1837,23 +3082,221 @@ function esconderAprender() {
   aprenderLink.removeAttribute("data-direito");
 }
 
-function atualizarProximo() {
-  btnProximo.hidden = !(estado.emJogo && estado.fase === "resolvido" && podeAdiantar);
+/* ---------- cartas ---------- */
+
+function liberarCartas() {
+  var sobras = document.querySelectorAll(".carta__resultado");
+  for (var i = 0; i < sobras.length; i++) {
+    sobras[i].parentNode.removeChild(sobras[i]);
+  }
+  respEncarar.disabled = false;
+  respAdiar.disabled = false;
+  respEncarar.hidden = false;
+  respAdiar.hidden = false;
+  respEncarar.classList.remove("carta--escolhida", "carta--descartada", "carta--virando");
+  respAdiar.classList.remove("carta--escolhida", "carta--descartada", "carta--virando");
+  respEncarar.removeAttribute("aria-hidden");
+  respAdiar.removeAttribute("aria-hidden");
+  respEncarar.style.setProperty("--rot", ((Math.random() * ROTACAO_GRAUS * 2 - ROTACAO_GRAUS).toFixed(2)) + "deg");
+  respAdiar.style.setProperty("--rot", ((Math.random() * ROTACAO_GRAUS * 2 - ROTACAO_GRAUS).toFixed(2)) + "deg");
 }
 
-/* ---------- menu e painéis ---------- */
+function bloquearCartas() {
+  respEncarar.disabled = true;
+  respAdiar.disabled = true;
+}
+
+/* ---------- cena ---------- */
+
+function mostrarSituacao(situacao) {
+  cena.classList.remove("cena--coringa");
+  cenaSelo.hidden = true;
+  cenaOlho.textContent = "O dia pede uma resposta";
+  cenaTexto.textContent = situacao.cena;
+  seloEncarar.textContent = "Encarar";
+  seloAdiar.textContent = "Adiar";
+  preencherCarta(respEncarar, tituloEncarar, efeitosEncarar, situacao.encarar, 0);
+  preencherCarta(respAdiar, tituloAdiar, efeitosAdiar, situacao.adiar, estado.corrente);
+}
+
+function mostrarImprevisto(evento) {
+  cena.classList.add("cena--coringa");
+  cenaSelo.hidden = false;
+  cenaSelo.textContent = "Imprevisto";
+  cenaOlho.textContent = "Imprevisto do dia";
+  cenaTexto.textContent = evento.cena;
+  seloEncarar.textContent = "Resposta 1";
+  seloAdiar.textContent = "Resposta 2";
+  preencherCarta(respEncarar, tituloEncarar, efeitosEncarar, evento.opcoes[0], 0);
+  preencherCarta(respAdiar, tituloAdiar, efeitosAdiar, evento.opcoes[1], 0);
+}
+
+/* ================= FLUXO ================= */
+
+function sortearImprevisto() {
+  return IMPREVISTOS[Math.floor(Math.random() * IMPREVISTOS.length)];
+}
+
+function inicioDoDia() {
+  var evento, situacao;
+
+  estado.dia += 1;
+  estado.fase = "escolha";
+  estado.imprevisto = false;
+  esconderAprender();
+  liberarCartas();
+
+  evento = Math.random() < CHANCE_IMPREVISTO ? sortearImprevisto() : null;
+  if (evento) {
+    estado.imprevisto = true;
+    estado.situacao = evento;
+    estado.respostas = { encarar: evento.opcoes[0], adiar: evento.opcoes[1] };
+    mostrarImprevisto(evento);
+  } else {
+    situacao = baralho.proxima();
+    estado.situacao = situacao;
+    estado.respostas = { encarar: situacao.encarar, adiar: situacao.adiar };
+    mostrarSituacao(situacao);
+  }
+
+  atualizarMedidores(estado.faltas, estado.animo);
+  atualizarAjuda();
+  atualizarProximo();
+  feedback.textContent = "Dia " + estado.dia + " de " + TOTAL_DIAS + ".";
+  atalho.textContent = "1 e 2 escolhem · A pede ajuda · Tab percorre · Enter confirma";
+  respEncarar.focus({ preventScroll: true });
+}
+
+/* Fecha do texto do resultado com os números já capturados em `escolher`. */
+function textoDaEscolha(resposta, faltasAntes, animoAntes, faltasDepois, animoDepois, extra) {
+  var partes = [];
+  var eco = resposta.eco;
+
+  if (extra > 0) {
+    partes.push("Adiar de novo: +" + extra + (extra === 1 ? " falta extra." : " faltas extras."));
+  }
+
+  if (resposta.faltas < 0 && faltasAntes === 0) {
+    eco = "Você foi, mas não havia falta para abonar.";
+  } else if (resposta.faltas > 0 && faltasDepois - faltasAntes < resposta.faltas + extra) {
+    eco += faltasDepois >= MAX_FALTAS
+      ? " O medidor de faltas chegou ao limite."
+      : " O medidor de faltas já estava no máximo.";
+  }
+
+  if (resposta.animo > 0 && animoDepois - animoAntes < resposta.animo) {
+    eco += animoDepois === MAX_ANIMO ? " O ânimo chegou ao máximo." : " O ânimo já estava no máximo.";
+  } else if (resposta.animo < 0 && animoDepois - animoAntes > resposta.animo) {
+    eco += animoDepois <= 0 ? " O ânimo chegou ao zero." : " O ânimo já estava no zero.";
+  }
+
+  partes.push(eco);
+  return partes.join(" ");
+}
+
+function escolher(lado) {
+  if (!estado.emJogo || estado.fase !== "escolha" || !estado.respostas) return;
+  var resposta = estado.respostas[lado];
+  if (!resposta) return;
+
+  var carta = lado === "encarar" ? respEncarar : respAdiar;
+  var outra = lado === "encarar" ? respAdiar : respEncarar;
+  var faltasAntes = estado.faltas;
+  var animoAntes = estado.animo;
+  var extra = 0;
+  var novo;
+
+  estado.fase = "resolvido";
+
+  if (estado.imprevisto) {
+    novo = {
+      faltas: aplicarFaltas(estado.faltas, resposta.faltas),
+      animo: aplicarAnimo(estado.animo, resposta.animo),
+      corrente: estado.corrente,
+      extra: 0
+    };
+  } else {
+    novo = aplicarEscolha(estado, lado, resposta);
+    extra = novo.extra;
+    if (lado === "adiar") {
+      estado.maiorCorrente = Math.max(estado.maiorCorrente, novo.corrente);
+    }
+  }
+
+  estado.faltas = novo.faltas;
+  estado.animo = novo.animo;
+  estado.corrente = novo.corrente;
+  if (lado === "encarar") estado.encarou += 1; else estado.adiou += 1;
+
+  bloquearCartas();
+  outra.classList.add("carta--descartada");
+  outra.setAttribute("aria-hidden", "true");
+  carta.classList.add("carta--escolhida");
+
+  var linha = criar("span", "carta__resultado",
+    "Faltas " + estado.faltas + "/" + MAX_FALTAS + " · ânimo " + estado.animo + "/" + MAX_ANIMO);
+  carta.appendChild(linha);
+
+  atualizarMedidores(faltasAntes, animoAntes);
+  atualizarAjuda();
+  if (estado.imprevisto) esconderAprender(); else mostrarAprender(estado.situacao);
+
+  var textoFeedback = textoDaEscolha(resposta, faltasAntes, animoAntes, estado.faltas, estado.animo, extra);
+  feedback.textContent = textoFeedback;
+
+  var final = estado.imprevisto
+    ? (resultadoImprevisto(estado.faltas, estado.animo) || resultadoFinal(estado.faltas, estado.animo, estado.dia))
+    : resultadoFinal(estado.faltas, estado.animo, estado.dia);
+
+  fimPendente = final;
+  if (final === "fora") motivoFora = estado.situacao.motivo;
+
+  btnProximo.textContent = final ? "Ver o resultado" : "Próximo dia";
+  atualizarProximo();
+  atalho.textContent = final ? "Leia a nota e veja o boletim" : "Enter, Espaço ou o botão seguem para o próximo dia";
+  anuncio.textContent = textoFeedback + (aprender.hidden ? "" : " " + aprenderTexto.textContent);
+  btnProximo.focus({ preventScroll: true });
+}
+
+function usarAjuda() {
+  /* Só durante a escolha: na janela resolvida o botão some, para o pedido de
+     ajuda não abrir uma porta de escape de uma derrota já decidida. */
+  if (!estado.emJogo || estado.fase !== "escolha") return;
+
+  var novo = aplicarAjuda(estado);
+  if (!novo) return;
+
+  var faltasAntes = estado.faltas;
+  var animoAntes = estado.animo;
+  estado.faltas = novo.faltas;
+  estado.animo = novo.animo;
+  estado.ajudas = novo.ajudas;
+  estado.corrente = novo.corrente;
+
+  var abatidas = faltasAntes - estado.faltas;
+  atualizarMedidores(faltasAntes, animoAntes);
+  atualizarAjuda();
+
+  feedback.textContent = "Pedir ajuda: a escola procurou você. −" + abatidas +
+    (abatidas === 1 ? " falta" : " faltas") + ". Agora " + estado.faltas + "/" + MAX_FALTAS + ".";
+  anuncio.textContent = feedback.textContent;
+
+  if (btnAjuda.disabled) respEncarar.focus({ preventScroll: true });
+}
+
+function avancarDia() {
+  if (!estado.emJogo || estado.fase !== "resolvido") return;
+  var final = fimPendente;
+  fimPendente = null;
+  if (final) { encerrar(final); return; }
+  inicioDoDia();
+}
+
+/* ================= MENU E PAINÉIS ================= */
 
 var menuAberto = false;
-var painelAtual = null;
 var focoRetorno = null;
 var menuOrigemFim = false;
-
-function criar(tag, classe, texto) {
-  var no = document.createElement(tag);
-  if (classe) no.className = classe;
-  if (texto !== undefined && texto !== null) no.textContent = texto;
-  return no;
-}
 
 function montarDemo(tipo) {
   var caixa = criar("div", "passo__demo");
@@ -1865,24 +3308,23 @@ function montarDemo(tipo) {
     caixa.appendChild(criar("span", null, "faltas 5/8"));
     for (i = 0; i < 10; i++) caixa.appendChild(criar("span", "demo-a" + (i < 4 ? " demo-a--on" : "")));
     caixa.appendChild(criar("span", null, "ânimo 4/10"));
-  } else if (tipo === "cartas") {
-    caixa.appendChild(criar("span", "demo-carta", "ESCOLA · 0 falta · −3 ânimo"));
-    caixa.appendChild(criar("span", "demo-carta", "CASA · +2 faltas · +1 ânimo"));
-  } else if (tipo === "busca") {
-    caixa.appendChild(criar("span", "demo-carta", "Busca ativa · −2 faltas · não gasta dia"));
-  } else if (tipo === "finais") {
-    caixa.appendChild(criar("span", "demo-carimbo", "FORA DA ESCOLA"));
-    caixa.appendChild(criar("span", "demo-carta", "8 faltas = EVADIDO"));
-    caixa.appendChild(criar("span", "demo-carta", "ânimo 0 = DESISTIU"));
-    caixa.appendChild(criar("span", "demo-carta", "12 dias = PASSOU"));
+  } else if (tipo === "encarar") {
+    caixa.appendChild(criar("span", "demo-selo demo-selo--encarar", "ENCARAR"));
+    caixa.appendChild(criar("span", null, "0 falta · −2 ânimo"));
+  } else if (tipo === "adiar") {
+    caixa.appendChild(criar("span", "demo-selo demo-selo--adiar", "ADIAR"));
+    caixa.appendChild(criar("span", null, "+1 falta · +2 ânimo"));
+  } else if (tipo === "corrente") {
+    caixa.appendChild(criar("span", "demo-carta", "1º adiar · +1 falta"));
+    caixa.appendChild(criar("span", "demo-carta", "2º seguido · +2"));
+    caixa.appendChild(criar("span", "demo-carta", "3º seguido · +3"));
+  } else if (tipo === "ajuda") {
+    caixa.appendChild(criar("span", "demo-carta", "Pedir ajuda · −2 faltas · +1 ânimo · não gasta o dia"));
   } else {
-    caixa.appendChild(criar("span", "demo-tecla", "1"));
-    caixa.appendChild(criar("span", "demo-tecla", "2"));
-    caixa.appendChild(criar("span", null, "escolhem"));
-    caixa.appendChild(criar("span", "demo-tecla", "Tab"));
-    caixa.appendChild(criar("span", null, "percorre"));
-    caixa.appendChild(criar("span", "demo-tecla", "Enter"));
-    caixa.appendChild(criar("span", null, "confirma"));
+    caixa.appendChild(criar("span", "demo-carimbo", "PASSOU"));
+    caixa.appendChild(criar("span", "demo-carta", "EVADIDO · 8 faltas"));
+    caixa.appendChild(criar("span", "demo-carta", "DESISTIU · ânimo 0"));
+    caixa.appendChild(criar("span", "demo-carta", "FORA DA ESCOLA · imprevisto"));
   }
   return caixa;
 }
@@ -1919,7 +3361,7 @@ function renderDireitos(alvoId) {
     cartao.appendChild(criar("h3", "cartao__titulo", d.titulo));
     cartao.appendChild(criar("p", "cartao__texto", d.texto));
     var acao = criar("p", "cartao__acao");
-    acao.appendChild(criar("span", "cartao__rotulo", "Se não acontecer · "));
+    acao.appendChild(criar("span", "cartao__rotulo", "Se acontecer · "));
     acao.appendChild(document.createTextNode(d.acao));
     cartao.appendChild(acao);
     cartao.appendChild(criar("p", "cartao__fonte", d.fonte));
@@ -1968,7 +3410,7 @@ function renderSobre() {
   menuCorpo.appendChild(criar("p", "painel__intro",
     "Falta Pouco é um jogo curto sobre um problema grande: 993 mil crianças e adolescentes de 4 a 17 anos estavam fora da escola no Brasil (PNAD Contínua 2024, divulgada pelo UNICEF em 2025). Desses, 440 mil têm 15 a 17 anos."));
   menuCorpo.appendChild(criar("p", "cartao__texto",
-    "O jogo não existe para culpar quem falta. Ele mostra que toda escolha tem preço e que existem direitos e caminhos de volta. A busca ativa, usada uma vez por partida, é a mesma ideia que escolas e redes de proteção usam para encontrar quem sumiu."));
+    "O jogo não existe para culpar quem falta. Ele mostra que o inimigo da permanência não é a casa, é adiar o problema: encarar resolve hoje e gasta ânimo; adiar alivia agora e cobra a falta depois, cada vez mais caro. Pedir ajuda duas vezes por partida é a saída que a vida real também oferece — busca ativa, Conselho Tutelar, CRAS e a própria escola."));
   menuCorpo.appendChild(criar("h3", "cartao__titulo", "Fontes"));
   var fontes = criar("ul", "fontes");
   FONTES.forEach(function (f) { fontes.appendChild(criar("li", null, f)); });
@@ -1987,7 +3429,6 @@ function focaveisMenu() {
 }
 
 function mostrarLista() {
-  painelAtual = null;
   menuTitulo.textContent = "Menu";
   menuCorpo.textContent = "";
   menuRodape.textContent = "";
@@ -2012,7 +3453,6 @@ function mostrarLista() {
 }
 
 function mostrarPainel(chave, alvoId) {
-  painelAtual = chave;
   menuTitulo.textContent = TITULOS_PAINEL[chave];
   menuCorpo.textContent = "";
   menuRodape.textContent = "";
@@ -2055,7 +3495,6 @@ function abrirMenu(painel, alvoId) {
 function fecharMenu() {
   if (!menuAberto) return;
   menuAberto = false;
-  painelAtual = null;
   menu.hidden = true;
   menuCorpo.textContent = "";
   menuRodape.textContent = "";
@@ -2069,289 +3508,51 @@ function fecharMenu() {
   alvo.focus({ preventScroll: true });
 }
 
-function bloquearRespostas() {
-  respEscola.disabled = true;
-  respCasa.disabled = true;
-}
+/* ================= FIM DE PARTIDA ================= */
 
-function liberarRespostas() {
-  var sobras = document.querySelectorAll(".resp__resultado");
-  for (var i = 0; i < sobras.length; i++) {
-    sobras[i].parentNode.removeChild(sobras[i]);
-  }
-  respEscola.disabled = false;
-  respCasa.disabled = false;
-  respEscola.hidden = false;
-  respCasa.hidden = false;
-  respEscola.classList.remove("resp--escolhida", "resp--descartada", "resp--virando");
-  respCasa.classList.remove("resp--escolhida", "resp--descartada", "resp--virando");
-  respEscola.removeAttribute("aria-hidden");
-  respCasa.removeAttribute("aria-hidden");
-  respEscola.style.setProperty("--rot", ((Math.random() * ROTACAO_GRAUS * 2 - ROTACAO_GRAUS).toFixed(2)) + "deg");
-  respCasa.style.setProperty("--rot", ((Math.random() * ROTACAO_GRAUS * 2 - ROTACAO_GRAUS).toFixed(2)) + "deg");
-}
-
-function mostrarCena(situacao) {
-  cena.classList.remove("cena--coringa");
-  cenaSelo.hidden = true;
-  cenaOlho.textContent = "O dia pede uma resposta";
-  cenaTexto.textContent = situacao.cena;
-}
-
-function mostrarCoringa(texto) {
-  cena.classList.add("cena--coringa");
-  cenaSelo.hidden = false;
-  cenaOlho.textContent = "Carta coringa";
-  cenaTexto.textContent = texto;
-}
-
-function inicioDaRodada() {
-  estado.rodada += 1;
-  estado.fase = "escolha";
-  limparAvanco();
-  fimPendente = null;
-  btnProximo.textContent = "Próximo dia";
-  esconderAprender();
-  atualizarProximo();
-  atalho.textContent = "1 e 2 escolhem · Tab percorre · Enter confirma";
-  liberarRespostas();
-
-  if (Math.random() < CHANCE_CORINGA || FORCAR_CORINGA) {
-    var motivos = [
-      "Mudou de cidade no meio do bimestre.",
-      "Começou a trabalhar de dia e não voltou.",
-      "Passou três semanas fora e ninguém procurou."
-    ];
-    var motivo = motivos[Math.floor(Math.random() * motivos.length)];
-    estado.fase = "coringa";
-    mostrarCoringa(motivo);
-    atalho.textContent = "";
-    tituloEscola.textContent = "";
-    tituloCasa.textContent = "";
-    efeitosEscola.textContent = "";
-    efeitosCasa.textContent = "";
-    respEscola.hidden = true;
-    respCasa.hidden = true;
-    btnBusca.hidden = true;
-    bloquearRespostas();
-    atualizarMedidores(estado.faltas, estado.animo);
-    atualizarBusca();
-    feedback.textContent = "Carta coringa: " + motivo;
-    window.setTimeout(function () {
-      encerrar("fora", motivo);
-    }, semMovimento.matches ? ESPERA_FIM_REDUZIDO : ESPERA_FIM_MOVIMENTO + 400);
-    return;
-  }
-
-  respEscola.hidden = false;
-  respCasa.hidden = false;
-
-  var situacao = baralho.proxima();
-  estado.situacao = situacao;
-  mostrarCena(situacao);
-  preencherCarta(tituloEscola, efeitosEscola, situacao.escola);
-  preencherCarta(tituloCasa, efeitosCasa, situacao.casa);
-
-  respEscola.setAttribute("aria-label",
-    "Escola. " + situacao.escola.titulo + ". " + rotuloFaltas(situacao.escola.faltas) +
-    ", " + rotuloAnimo(situacao.escola.animo) + ".");
-  respCasa.setAttribute("aria-label",
-    "Casa. " + situacao.casa.titulo + ". " + rotuloFaltas(situacao.casa.faltas) +
-    ", " + rotuloAnimo(situacao.casa.animo) + ".");
-
-  atualizarMedidores(estado.faltas, estado.animo);
-  atualizarBusca();
-  feedback.textContent = "Dia " + estado.rodada + " de " + TOTAL_RODADAS + ". Escolha uma resposta.";
-  /* o teclado não pode cair no BODY a cada rodada */
-  respEscola.focus({ preventScroll: true });
-}
-
-/* Linha curta com os dois totais, usada no cartão e no anúncio. */
-function linhaAgora(faltas, animo) {
-  return "Agora: " + faltas + "/" + MAX_FALTAS + " faltas · " +
-    animo + "/" + MAX_ANIMO + " ânimo";
-}
-
-/* Fecha do texto do resultado com os números já capturados em `escolher`. */
-function textoDaEscolha(resposta, faltasAntes, animoAntes, faltasDepois, animoDepois) {
-  var faltasEfetivo = faltasDepois - faltasAntes;
-  var animoEfetivo = animoDepois - animoAntes;
-  var frase = resposta.eco;
-
-  if (resposta.faltas < 0 && faltasAntes === 0) {
-    frase = "Você foi, mas não havia falta para abonar.";
-  } else if (resposta.faltas > 0 && faltasEfetivo < resposta.faltas) {
-    frase += faltasEfetivo === 0
-      ? " O medidor de faltas já estava no máximo."
-      : " O medidor de faltas chegou ao limite.";
-  }
-
-  if (resposta.animo > 0 && animoEfetivo < resposta.animo) {
-    frase += animoEfetivo === 0
-      ? " O ânimo já estava no máximo."
-      : " O ânimo chegou ao máximo.";
-  } else if (resposta.animo < 0 && animoEfetivo > resposta.animo) {
-    frase += animoEfetivo === 0
-      ? " O ânimo já estava no zero."
-      : " O ânimo chegou ao zero.";
-  }
-
-  return frase + " Faltas " + faltasDepois + "/" + MAX_FALTAS +
-    ", ânimo " + animoDepois + "/" + MAX_ANIMO + ".";
-}
-
-function escolher(lado) {
-  if (!estado.emJogo || estado.fase !== "escolha") return;
-  var situacao = estado.situacao;
-  if (!situacao) return;
-
-  var resposta = lado === "escola" ? situacao.escola : situacao.casa;
-  var carta = lado === "escola" ? respEscola : respCasa;
-  var outra = lado === "escola" ? respCasa : respEscola;
-
-  estado.fase = "resolvido";
-  if (lado === "escola") estado.escolas += 1; else estado.casas += 1;
-
-  var faltasAntes = estado.faltas;
-  var animoAntes = estado.animo;
-  estado.faltas = aplicarFaltas(estado.faltas, resposta.faltas);
-  estado.animo = aplicarAnimo(estado.animo, resposta.animo);
-
-  var faltasGanhas = estado.faltas - faltasAntes;
-  if (faltasGanhas > 0) estado.sequencia += faltasGanhas;
-  else if (resposta.faltas < 0) estado.sequencia = 0;
-
-  /* Números e textos fechados aqui, antes de qualquer timer: o callback não
-     recalcula nada a partir de um estado que já pode ter mudado. */
-  var faltasDepois = estado.faltas;
-  var animoDepois = estado.animo;
-  var textoResultado = linhaAgora(faltasDepois, animoDepois);
-  var textoFeedback = textoDaEscolha(resposta, faltasAntes, animoAntes, faltasDepois, animoDepois);
-
-  bloquearRespostas();
-  outra.classList.add("resp--descartada");
-  outra.setAttribute("aria-hidden", "true");
-  atualizarBusca();
-
-  var semAnim = semMovimento.matches;
-  if (!semAnim) {
-    carta.classList.add("resp--virando");
-  }
-
-  window.setTimeout(function () {
-    carta.classList.remove("resp--virando");
-    carta.classList.add("resp--escolhida");
-
-    var resultado = document.createElement("span");
-    resultado.className = "resp__resultado";
-    resultado.textContent = textoResultado;
-    carta.appendChild(resultado);
-
-    atualizarMedidores(faltasAntes, animoAntes);
-    feedback.textContent = textoFeedback;
-
-    var fimDeJogo = resultadoFinal(faltasDepois, animoDepois, estado.rodada);
-
-    estado.fase = "resolvido";
-    mostrarAprender(situacao);
-    /* a nota também vai para a região viva: é o conteúdo educativo da rodada */
-    anuncio.textContent = textoFeedback + (aprender.hidden ? "" : " " + aprenderTexto.textContent);
-    podeAdiantar = true;
-    atualizarBusca();
-
-    if (fimDeJogo) {
-      /* a nota da última rodada também aparece; o boletim espera o clique */
-      fimPendente = fimDeJogo;
-      btnProximo.textContent = "Ver o resultado";
-      atualizarProximo();
-      atalho.textContent = "Leia a nota e veja o boletim";
-      btnProximo.focus({ preventScroll: true });
-      return;
-    }
-
-    atualizarProximo();
-    atalho.textContent = "Enter, Espaço ou o botão seguem para o próximo dia";
-    btnProximo.focus({ preventScroll: true });
-  }, semAnim ? ESPERA_VIRADA_REDUZIDO : ESPERA_VIRADA_MOVIMENTO);
-}
-
-function usarBusca() {
-  /* Só durante a escolha: na pausa entre a escolha e o fim, a busca abriria
-     uma janela para escapar de uma derrota já decidida. */
-  if (!estado.emJogo || estado.fase !== "escolha") return;
-  if (estado.usouBusca || estado.faltas < MIN_FALTAS_BUSCA) return;
-
-  var antes = estado.faltas;
-  estado.faltas = aplicarFaltas(estado.faltas, -CUSTO_BUSCA);
-  estado.usouBusca = true;
-  estado.buscaRodada = estado.rodada;
-  estado.sequencia = 0;
-
-  atualizarMedidores(antes, estado.animo);
-  atualizarBusca();
-
-  var abatidas = antes - estado.faltas;
-  feedback.textContent = "Busca ativa: a escola procurou você. " +
-    "−" + abatidas + (abatidas === 1 ? " falta" : " faltas") +
-    ". Agora " + estado.faltas + "/" + MAX_FALTAS + ".";
-  anuncio.textContent = feedback.textContent;
-}
-
-function encerrar(resultado, motivoCoringa) {
-  /* o timer do coringa pode disparar com o menu aberto: fechar antes evita
-     boletim atrás do menu, foco roubado e fundo interativo ao fechar */
+function encerrar(resultado) {
+  /* o menu pode estar aberto por cima do jogo: fechar antes evita boletim
+     atrás do menu, foco roubado e fundo interativo ao fechar */
   if (menuAberto) fecharMenu();
+
   estado.emJogo = false;
   estado.fase = "fim";
-  bloquearRespostas();
-  limparAvanco();
-  atualizarBusca();
-  atualizarProximo();
+  bloquearCartas();
   esconderAprender();
+  atualizarAjuda();
+  atualizarProximo();
 
-  if (resultado === "evadido") {
-    fimCarimbo.textContent = "EVADIDO";
-    fimCarimbo.className = "carimbo carimbo--evadido";
-    fimLinha.textContent = "Oito faltas. A escola perdeu o contato.";
-  } else if (resultado === "fora") {
-    fimCarimbo.textContent = "FORA DA ESCOLA";
-    fimCarimbo.className = "carimbo carimbo--fora";
-    fimLinha.textContent = "Motivo: " + motivoCoringa;
-  } else if (resultado === "desistiu") {
-    fimCarimbo.textContent = "DESISTIU";
-    fimCarimbo.className = "carimbo carimbo--desistiu";
-    fimLinha.textContent = "O ânimo chegou a zero. Você parou de ir.";
-  } else {
-    fimCarimbo.textContent = "PASSOU";
-    fimCarimbo.className = "carimbo carimbo--passou";
-    fimLinha.textContent = "Doze dias, " + estado.faltas +
-      (estado.faltas === 1 ? " falta" : " faltas") + ", ânimo " + estado.animo + ". Deu tempo.";
-  }
+  var dados = {
+    faltas: estado.faltas,
+    animo: estado.animo,
+    dias: estado.dia,
+    motivo: motivoFora
+  };
+  var f = FINAIS[resultado];
+
+  fimCarimbo.textContent = f.carimbo;
+  fimCarimbo.className = "carimbo carimbo--" + resultado;
+  fimLinha.textContent = f.linha;
+  fimLeitura.textContent = f.leitura(dados);
 
   fimNome.textContent = estado.nome;
-  fimRodadas.textContent = estado.rodada + (estado.rodada === 1 ? " dia" : " dias");
+  fimRodadas.textContent = estado.dia + (estado.dia === 1 ? " dia" : " dias");
   fimFaltas.textContent = estado.faltas + " de " + MAX_FALTAS;
   fimAnimo.textContent = estado.animo + " de " + MAX_ANIMO;
-  fimEscolhas.textContent = estado.escolas + " / " + estado.casas;
-  fimBusca.textContent = estado.buscaRodada
-    ? "usada na rodada " + estado.buscaRodada
-    : "não usada";
-  fimLeitura.textContent = textoLeitura({
-    casas: estado.casas,
-    buscaRodada: estado.buscaRodada
-  });
+  fimEscolhas.textContent = estado.encarou + " / " + estado.adiou;
+  fimAjudas.textContent = estado.ajudas === 0 ? "nenhuma" : estado.ajudas + " de " + MAX_AJUDA;
+  fimAdiadas.textContent = estado.maiorCorrente >= 2 ? estado.maiorCorrente + " dias" : "nenhuma";
 
   fimAcoesLista.textContent = "";
-  var acoes = ACOES_FIM[resultado] || ACOES_FIM.desistiu;
-  acoes.forEach(function (acao) {
+  f.acoes.forEach(function (acao) {
     fimAcoesLista.appendChild(criar("li", null, acao));
   });
 
   fim.hidden = false;
-  boletim.scrollTop = 0;
+  fim.scrollTop = 0;
   document.body.classList.add("travado");
   pagina.inert = true;
-  btnDeNovo.focus();
+  btnDeNovo.focus({ preventScroll: true });
 }
 
 function iniciarPartida() {
@@ -2364,19 +3565,22 @@ function iniciarPartida() {
   estado.nome = (digitado || "Estudante").slice(0, MAX_NOME);
   estado.faltas = 0;
   estado.animo = ANIMO_INICIAL;
-  estado.rodada = 0;
-  estado.emJogo = true;
+  estado.dia = 0;
   estado.fase = "inicio";
-  estado.usouBusca = false;
-  estado.buscaRodada = 0;
-  estado.escolas = 0;
-  estado.casas = 0;
-  estado.sequencia = 0;
+  estado.emJogo = true;
+  estado.ajudas = 0;
+  estado.corrente = 0;
+  estado.encarou = 0;
+  estado.adiou = 0;
+  estado.maiorCorrente = 0;
+  estado.imprevisto = false;
   estado.situacao = null;
+  estado.respostas = null;
+  fimPendente = null;
+  motivoFora = "";
   anuncio.textContent = "";
 
   baralho = criarBaralho(SITUACOES, Math.random);
-
   campoNome.value = estado.nome;
 
   fim.hidden = true;
@@ -2386,81 +3590,30 @@ function iniciarPartida() {
   TELAS.jogo.hidden = false;
   document.body.classList.add("em-jogo");
 
-  respEscola.hidden = false;
-  respCasa.hidden = false;
-  limparAvanco();
-  fimPendente = null;
   btnProximo.textContent = "Próximo dia";
   esconderAprender();
-  atualizarProximo();
-  btnBusca.hidden = false;
   atualizarMedidores(0, ANIMO_INICIAL);
-  inicioDaRodada();
+  inicioDoDia();
 }
+
+/* ================= EVENTOS ================= */
 
 formInicio.addEventListener("submit", function (evento) {
   evento.preventDefault();
   iniciarPartida();
 });
 
-respEscola.addEventListener("click", function (evento) {
-  if (evento.detail > 1) return;
-  /* clique que começou na rodada anterior (dedo segurado durante o avanço
-     automático) não pode escolher a carta que acabou de aparecer */
-  if (evento.detail > 0 && rodadaDoPointer !== estado.rodada) return;
-  escolher("escola");
-});
-respCasa.addEventListener("click", function (evento) {
-  if (evento.detail > 1) return;
-  if (evento.detail > 0 && rodadaDoPointer !== estado.rodada) return;
-  escolher("casa");
-});
-btnBusca.addEventListener("click", usarBusca);
+respEncarar.addEventListener("click", function () { escolher("encarar"); });
+respAdiar.addEventListener("click", function () { escolher("adiar"); });
+btnAjuda.addEventListener("click", usarAjuda);
+btnProximo.addEventListener("click", avancarDia);
 btnDeNovo.addEventListener("click", iniciarPartida);
-btnProximo.addEventListener("click", avancarRodada);
 btnMenu.addEventListener("click", function () { abrirMenu(null, null); });
 menuFechar.addEventListener("click", fecharMenu);
 btnDireitosFim.addEventListener("click", function () { abrirMenu("direitos", null); });
 aprenderLink.addEventListener("click", function () {
   var direito = aprenderLink.getAttribute("data-direito");
   abrirMenu("direitos", direito || null);
-});
-
-/* Token de rodada capturado no pointerdown: um clique que atravessa o avanço
-   automático vale para a rodada em que começou, não para a seguinte. */
-var rodadaDoPointer = -1;
-var cliquePausa = false;
-var cliquePausaRodada = -1;
-
-function podeAdiantarPorClique(evento) {
-  if (menuAberto || !fim.hidden) return false;
-  if (!estado.emJogo || estado.fase !== "resolvido" || !podeAdiantar) return false;
-  var alvo = evento.target;
-  if (!alvo || !alvo.closest) return true;
-  /* link da nota, botões e campos têm ação própria: não valem como "seguir" */
-  return !alvo.closest("button, a, input, select, textarea, [role='button']");
-}
-
-document.addEventListener("pointerdown", function (evento) {
-  rodadaDoPointer = estado.rodada;
-  if (evento.button !== 0) return;
-  cliquePausa = podeAdiantarPorClique(evento);
-  if (cliquePausa) cliquePausaRodada = estado.rodada;
-});
-
-document.addEventListener("pointerup", function () {
-  if (!cliquePausa) return;
-  cliquePausa = false;
-  if (!estado.emJogo || estado.fase !== "resolvido" || !podeAdiantar) return;
-  if (cliquePausaRodada !== estado.rodada) return;
-  /* depois do clique atual, para não escolher a carta da rodada seguinte */
-  window.setTimeout(avancarRodada, 0);
-});
-
-document.addEventListener("pointercancel", function () { cliquePausa = false; });
-
-document.addEventListener("click", function (evento) {
-  if (podeAdiantarPorClique(evento)) avancarRodada();
 });
 
 document.addEventListener("keydown", function (evento) {
@@ -2477,12 +3630,16 @@ document.addEventListener("keydown", function (evento) {
       var focosMenu = focaveisMenu();
       if (!focosMenu.length) return;
       var atualMenu = focosMenu.indexOf(document.activeElement);
+      var dentroMenu = menuCaixa.contains(document.activeElement);
       if (evento.shiftKey) {
         if (atualMenu <= 0) {
           evento.preventDefault();
           focosMenu[focosMenu.length - 1].focus();
         }
-      } else if (atualMenu === -1 || atualMenu === focosMenu.length - 1) {
+      } else if (atualMenu === focosMenu.length - 1) {
+        evento.preventDefault();
+        focosMenu[0].focus();
+      } else if (!dentroMenu) {
         evento.preventDefault();
         focosMenu[0].focus();
       }
@@ -2504,6 +3661,7 @@ document.addEventListener("keydown", function (evento) {
     }
     return;
   }
+
   if (!estado.emJogo) return;
   /* Ctrl+1, Alt+1 e Cmd+1 pertencem ao navegador/sistema, não ao jogo */
   if (evento.ctrlKey || evento.altKey || evento.metaKey) return;
@@ -2512,22 +3670,34 @@ document.addEventListener("keydown", function (evento) {
   var tag = alvo && alvo.tagName ? alvo.tagName.toLowerCase() : "";
   if (tag === "input" || tag === "textarea") return;
 
-  if (estado.fase === "resolvido" && podeAdiantar) {
+  if (estado.fase === "resolvido") {
     if (evento.key === "Enter" || evento.key === " " || evento.key === "Spacebar") {
       /* botão e link da nota têm ação própria */
       if (alvo && alvo.closest && alvo.closest("button, a, input, select, textarea")) return;
       evento.preventDefault();
-      avancarRodada();
+      avancarDia();
     }
     return;
   }
 
   if (estado.fase !== "escolha") return;
-  var digito = evento.key;
-  if (digito !== "1" && digito !== "2") return;
 
-  evento.preventDefault();
-  escolher(digito === "1" ? "escola" : "casa");
+  var tecla = evento.key;
+  if (tecla === "1") {
+    evento.preventDefault();
+    escolher("encarar");
+    return;
+  }
+  if (tecla === "2") {
+    evento.preventDefault();
+    escolher("adiar");
+    return;
+  }
+  if (tecla === "a" || tecla === "A") {
+    if (btnAjuda.hidden || btnAjuda.disabled) return;
+    evento.preventDefault();
+    usarAjuda();
+  }
 });
 </script>
 </body>
